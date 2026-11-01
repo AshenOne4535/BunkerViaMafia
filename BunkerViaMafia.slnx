@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/Bunker.Api/Bunker.Api.csproj" />
+  </Folder>
+</Solution>
