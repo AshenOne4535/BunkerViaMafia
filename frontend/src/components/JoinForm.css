@@ -1,8 +1,4 @@
-/* Formularz dołączania (Task 11), układ wzorowany na ekranach telefonu
-   z prezentacji (Zajęcia 4).
-   Kolory i czcionki pochodzą ze wspólnego motywu (src/index.css, Task 6),
-   więc formularz sam zmienia wygląd razem z przełącznikiem motywu.
-   Czcionki (Oswald, Roboto Mono) ładuje index.css. */
+
 
 .join {
   /* Aliasy: ten plik używa krótkich nazw --card i --line.
