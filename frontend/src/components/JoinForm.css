@@ -1,35 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap');
 
-/* Kolory i styl wzorowane na ekranach telefonu z prezentacji (Zajęcia 4).
-   Gdy będzie gotowy wspólny motyw (Task 6), wystarczy podmienić
-   zmienne w bloku .join na zmienne z motywu. */
-
-/* Domyślny szablon Vite ma biały/jasny tło strony i ramkę wokół #root.
-   Gdy na stronie jest formularz, wyłączamy to. */
-body:has(.join) {
-  background: #1c231b;
-}
-#root:has(.join) {
-  border-inline: none;
-}
 
 .join {
-  --bg: #1c231b;
-  --card: #272d24;
-  --line: #3a4233;
-  --text: #e6ebdf;
-  --muted: #9aa08f;
-  --lime: #89ac32;
-  --on-lime: #1c231b;
-  --danger: #e5675a;
-
-  --font-head: 'Oswald', 'Arial Narrow', Impact, sans-serif;
-  --font-mono: 'Roboto Mono', Consolas, monospace;
+  /* Aliasy: ten plik używa krótkich nazw --card i --line.
+     Pozostałe zmienne (--bg, --text, --muted, --lime, --on-lime, --danger,
+     --font-head, --font-mono) przychodzą z motywu pod tymi samymi nazwami.
+     Nie przedefiniowuj ich tutaj: "--lime: var(--lime)" to pętla i zmienna
+     przestaje działać. */
+  --card: var(--bg-card);
+  --line: var(--border);
 
   box-sizing: border-box;
   width: 100%;
   max-width: 430px;
-  min-height: 100dvh;
+  flex: 1 0 auto; /* wypełnia wysokość ekranu pod paskiem z przełącznikiem */
   margin: 0 auto;
   padding: 20px 16px 0;
   display: flex;
@@ -50,6 +33,7 @@ body:has(.join) {
 }
 
 /* --- Nagłówek --- */
+
 .join__top {
   display: flex;
   justify-content: space-between;
@@ -100,6 +84,7 @@ body:has(.join) {
 }
 
 /* --- Formularz --- */
+
 .join__form {
   flex: 1;
   display: flex;
@@ -172,7 +157,8 @@ body:has(.join) {
 }
 
 .field__input::placeholder {
-  color: #5f6755;
+  color: var(--placeholder);
+  opacity: 1; /* Firefox domyślnie przyciemnia placeholder */
 }
 
 .field__input:focus {
@@ -208,12 +194,13 @@ body:has(.join) {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   color: var(--danger);
-  background: rgba(229, 103, 90, 0.1);
-  border: 1px solid rgba(229, 103, 90, 0.4);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: 3px;
 }
 
 /* --- Dolny pasek z przyciskiem (przyklejony do dołu ekranu) --- */
+
 .join__bar {
   position: sticky;
   bottom: 0;
@@ -249,7 +236,7 @@ body:has(.join) {
 /* formularz jeszcze niepoprawny: przycisk wygląda na "zablokowany",
    ale nadal można go kliknąć, żeby zobaczyć błędy */
 .join__button--idle {
-  background: #303727;
+  background: var(--bg-muted);
   border-color: var(--line);
   color: var(--muted);
 }
