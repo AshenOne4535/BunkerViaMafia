@@ -1,6 +1,7 @@
 using Bunker.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Bunker.Api.Middleware;
+using Bunker.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,14 +20,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
+builder.Services.AddSingleton<IRoomService, RoomService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
