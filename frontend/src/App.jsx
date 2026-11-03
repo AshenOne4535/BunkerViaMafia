@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { ThemeProvider, useTheme } from './context/ThemeContext'
 import JoinForm from './components/JoinForm'
 
@@ -57,6 +58,14 @@ function ThemeToggle() {
 }
 
 function AppContent() {
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    
+    fetch(`${apiUrl}/api/rooms/ping`)
+      .then(res => res.json())
+      .then(data => console.log('Odpowiedź od serwera C#:', data))
+      .catch(err => console.error('Błąd połączenia z backend', err));
+  }, []);
   return (
     <div className="app">
       <header className="app-bar">
