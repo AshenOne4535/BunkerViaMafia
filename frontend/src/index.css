@@ -1,111 +1,181 @@
+/* Czcionki marki: Oswald (nagłówki, UI) i Roboto Mono (kody, liczniki).
+   @import musi być pierwszą instrukcją w pliku. */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap');
+
+/* ==========================================================================
+   MOTYW (Task 6)
+   Atrybut data-theme ustawia ThemeContext.jsx na <html>.
+   Brak atrybutu = motyw ciemny. Komponenty używają wyłącznie zmiennych
+   poniżej, bez twardych kolorów, więc zmiana motywu działa wszędzie naraz.
+   ========================================================================== */
+
+/* --- Wspólne dla obu motywów --- */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --font-head: 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --font-mono: 'Roboto Mono', Consolas, monospace;
+  --font-body: system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* akcent = lime (w jasnym motywie lime jest ciemniejszy, patrz niżej) */
+  --accent: var(--lime);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* --- Ciemny: bunkier (domyślny) --- */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  --bg: #0d110f; /* tło strony */
+  --bg-card: #141c17; /* karty, panele, pola formularzy */
+  --bg-muted: #1b261f; /* przyciski nieaktywne, kod */
+  --border: #273e2d;
+
+  --text: #e6ebdf; /* tekst podstawowy */
+  --text-h: #f4f7f2; /* nagłówki */
+  --muted: #9aa08f; /* podpisy, podpowiedzi */
+  --placeholder: #6d7867;
+
+  --lime: #84cc16; /* akcent marki */
+  --on-lime: #0d110f; /* tekst na limonkowym tle */
+  --accent-bg: rgba(132, 204, 22, 0.15);
+  --accent-border: rgba(132, 204, 22, 0.5);
+
+  --danger: #e5675a;
+  --danger-bg: rgba(229, 103, 90, 0.1);
+  --danger-border: rgba(229, 103, 90, 0.4);
+}
+
+/* --- Jasny (musi być po ciemnym: ta sama specyficzność, wygrywa kolejność) --- */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #eef1ea;
+  --bg-card: #ffffff;
+  --bg-muted: #e3e8dd;
+  --border: #c9d1c1;
+
+  --text: #2a3328;
+  --text-h: #121a13;
+  --muted: #5b6656;
+  --placeholder: #79846f;
+
+  --lime: #5e980c; /* ciemniejszy lime: czytelny na jasnym tle */
+  --on-lime: #0d110f;
+  --accent-bg: rgba(94, 152, 12, 0.12);
+  --accent-border: rgba(94, 152, 12, 0.5);
+
+  --danger: #c0392b;
+  --danger-bg: rgba(192, 57, 43, 0.08);
+  --danger-border: rgba(192, 57, 43, 0.35);
+}
+
+/* ==========================================================================
+   BAZA
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.4;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  min-height: 100dvh;
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  line-height: 1.1;
   color: var(--text-h);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
+code {
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--bg-muted);
   color: var(--text-h);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* ==========================================================================
+   POWŁOKA APLIKACJI I PRZEŁĄCZNIK MOTYWU
+   ========================================================================== */
+
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px 0;
+}
+
+.theme-toggle-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--lime);
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 2px;
+}
+
+.theme-toggle-btn svg {
+  flex: none;
+  color: var(--lime);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
