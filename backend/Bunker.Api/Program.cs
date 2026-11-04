@@ -1,8 +1,13 @@
 using Bunker.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Bunker.Api.Middleware;
+using Bunker.Api.Services;
+using System.Text.Json.Serialization;
+using Bunker.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<IRoomService, RoomService>();
 
 // 1. Реєстрація контексту БД PostgreSQL
 builder.Services.AddDbContext<BunkerDbContext>(options =>
@@ -19,14 +24,18 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
+builder.Services.AddSignalR();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
+builder.Services.AddSingleton<IRoomService, RoomService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
