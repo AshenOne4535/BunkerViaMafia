@@ -14,7 +14,6 @@ public class RoomsController : ControllerBase
         _roomService = roomService;
     }
 
-    
     [HttpGet("ping")]
     public IActionResult Ping()
     {
@@ -22,41 +21,31 @@ public class RoomsController : ControllerBase
     }
 
     [HttpPost("create")]
-    public IActionResult CreateRoom([FromQuery] string frontendUrl = "http://localhost:5173")
+    public async Task<IActionResult> CreateRoom([FromQuery] string frontendUrl = "http://localhost:5173")
     {
-        var room = _roomService.CreateRoom(frontendUrl, out var qrCode, out var joinUrl);
+        var result = await _roomService.CreateRoomAsync(frontendUrl);
         return Ok(new
         {
-            roomCode = room.RoomCode,
-            joinUrl,
-            qrCodeBase64 = qrCode,
-            settings = room.Settings,
-            players = room.Players
+            room = result.Room,
+            qrCodeBase64 = result.QrCodeBase64,
+            joinUrl = result.JoinUrl
         });
     }
 
-    
     [HttpGet("{code}")]
-    public IActionResult GetRoom(string code)
+    public async Task<IActionResult> GetRoom(string code)
     {
-        var room = _roomService.GetRoom(code);
-        if (room == null)
-            return NotFound(new { message = "Nie znaleziono pokoju o podanym kodzie." });
-
+        var room = await _roomService.GetRoomAsync(code);
+        if (room == null) return NotFound(new { message = "Pokój nie został znaleziony." });
         return Ok(room);
     }
 
     public record JoinRoomRequest(string RoomCode, string Nickname);
 
-    
     [HttpPost("join")]
-    public IActionResult JoinRoom([FromBody] JoinRoomRequest request)
+    public async Task<IActionResult> JoinRoom([FromBody] JoinRoomRequest request)
     {
-        var player = _roomService.JoinRoom(request.RoomCode, request.Nickname);
-        return Ok(new
-        {
-            roomCode = request.RoomCode.ToUpper().Trim(),
-            player
-        });
+        var player = await _roomService.JoinRoomAsync(request.RoomCode, request.Nickname);
+        return Ok(player);
     }
 }

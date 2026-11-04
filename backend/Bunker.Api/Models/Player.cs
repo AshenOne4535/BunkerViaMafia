@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Bunker.Api.Models;
 
@@ -27,6 +28,7 @@ public class Player
     // Зовнішній ключ до Room
     [ForeignKey(nameof(Room))]
     public Guid RoomId { get; set; }
+    [JsonIgnore]
     public Room Room { get; set; } = null!;
 
     // Картки характеристик, видані гравцю (6 штук на матч)
