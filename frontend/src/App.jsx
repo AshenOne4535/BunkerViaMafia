@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ThemeProvider, useTheme } from './context/ThemeContext'
 import JoinForm from './components/JoinForm'
+import YourCard from './components/YourCard'
 
 function MoonIcon() {
   return (
@@ -58,6 +59,9 @@ function ThemeToggle() {
 }
 
 function AppContent() {
+  // Dane z formularza dołączania ({ code, nick }). Docelowo: routing + ekran Poczekalni (Task 12).
+  const [joined, setJoined] = useState(null)
+
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL;
     
@@ -72,7 +76,7 @@ function AppContent() {
         <ThemeToggle />
       </header>
 
-      <JoinForm onJoined={(data) => console.log('Dołączono:', data)} />
+      {joined ? <YourCard roomCode={joined.code} /> : <JoinForm onJoined={setJoined} />}
     </div>
   )
 }
