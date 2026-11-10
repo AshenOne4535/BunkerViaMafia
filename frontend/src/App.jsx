@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { ThemeProvider, useTheme } from './context/ThemeContext'
 import JoinForm from './components/JoinForm'
+import HostLobby from './components/HostLobby'
 
 function MoonIcon() {
   return (
@@ -57,18 +58,40 @@ function ThemeToggle() {
   )
 }
 
+// Linki w nagłówku ekranu hosta. "WIDOK TELEFONU" widać tylko w trybie
+// deweloperskim (npm run dev), w produkcji go nie ma.
+const HOST_NAV = [
+  { id: 'broadcast', label: 'TRANSMISJA LOKALNA', href: '/?host', live: true },
+  { id: 'host', label: 'PANEL HOSTA', href: '/?host', current: true },
+  ...(import.meta.env.DEV ? [{ id: 'phone', label: 'WIDOK TELEFONU', href: '/' }] : []),
+]
+
 function AppContent() {
-  useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    
-    fetch(`${apiUrl}/api/rooms/ping`)
-      .then(res => res.json())
-      .then(data => console.log('Odpowiedź od serwera C#:', data))
-      .catch(err => console.error('Błąd połączenia z backend', err));
-  }, []);
+  // Tymczasowo, do czasu routera: /?host otwiera ekran hosta (TV),
+  // zwykły adres otwiera formularz gracza (telefon).
+  const isHost = new URLSearchParams(window.location.search).has('host')
+
+  if (isHost) {
+    return (
+      <HostLobby
+        navItems={HOST_NAV}
+        headerExtra={<ThemeToggle />}
+        onStart={(data) => console.log('START', data)}
+      />
+    )
+  }
+
   return (
     <div className="app">
       <header className="app-bar">
+        {import.meta.env.DEV && (
+          <a
+            href="/?host"
+            style={{ marginRight: 'auto', alignSelf: 'center', fontSize: 12, color: 'var(--muted)' }}
+          >
+            widok hosta →
+          </a>
+        )}
         <ThemeToggle />
       </header>
 
