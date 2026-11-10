@@ -167,6 +167,218 @@ namespace Bunker.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TraitCards");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Category = 1,
+                            Description = "Potrafi przeprowadzać operacje w warunkach polowych",
+                            Value = "Lekarz chirurg"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Category = 1,
+                            Description = "Zna się na naprawie systemów wentylacji i generatorów",
+                            Value = "Inżynier mechanik"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Category = 1,
+                            Description = "Specjalista od uprawy roślin i hydroponiki",
+                            Value = "Botanik"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Category = 1,
+                            Description = "Wyszkolenie bojowe i obsługa broni",
+                            Value = "Żołnierz sił specjalnych"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Category = 1,
+                            Description = "Potrafi prowadzić transmisje na żywo, brak praktycznych umiejętności przetrwania",
+                            Value = "Influencer"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Category = 2,
+                            Description = "Silna odporność i brak chorób przewlekłych",
+                            Value = "Doskonałe zdrowie"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Category = 2,
+                            Description = "Wymaga inhalatora przy wysiłku i zapyleniu",
+                            Value = "Astma oskrzelowa"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Category = 2,
+                            Description = "Wymaga regularnego podawania insuliny",
+                            Value = "Cukrzyca typu 1"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Category = 2,
+                            Description = "Bez okularów słabo widzi na odległość",
+                            Value = "Krótkowzroczność (-5 D)"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Category = 2,
+                            Description = "Częste kichanie i łzawienie oczu w zamkniętych pomieszczeniach",
+                            Value = "Alergia na kurz i pleśń"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Category = 3,
+                            Description = "Stabilna psychika w sytuacjach kryzysowych",
+                            Value = "Brak fobii"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Category = 3,
+                            Description = "Paniczny lęk przed zamkniętymi i ciasnymi pomieszczeniami",
+                            Value = "Klaustrofobia"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Category = 3,
+                            Description = "Paniczny lęk przed pająkami i owadami",
+                            Value = "Arachnofobia"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Category = 3,
+                            Description = "Silny lęk przed ciemnością i brakiem oświetlenia",
+                            Value = "Nyktfobia"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Category = 3,
+                            Description = "Obsesyjny lęk przed brudem i zarazkami",
+                            Value = "Mizofobia"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Category = 4,
+                            Description = "Umiejętność przetrwania w trudnych warunkach",
+                            Value = "Survival i bushcraft"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Category = 4,
+                            Description = "Potrafi przygotować smaczny posiłek z minimalnych zapasów",
+                            Value = "Gotowanie z konserw"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Category = 4,
+                            Description = "Umiejętność obsługi i naprawy sprzętu radiowego",
+                            Value = "Krótkofalarstwo"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Category = 4,
+                            Description = "Podnosi morale grupy podczas długiej izolacji",
+                            Value = "Gra na gitarze"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Category = 4,
+                            Description = "Rozwija myślenie strategiczne i organizuje czas wolny",
+                            Value = "Gry planszowe i szachy"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Category = 5,
+                            Description = "Zestaw opatrunków, antybiotyków i leków przeciwbólowych",
+                            Value = "Apteczka taktyczna"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Category = 5,
+                            Description = "Klucze, wkrętaki, lutownica i miernik napięcia",
+                            Value = "Skrzynka z narzędziami"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Category = 5,
+                            Description = "Hermetycznie zapakowane nasiona do uprawy w bunkrze",
+                            Value = "Zapas nasion warzyw"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            Category = 5,
+                            Description = "Urządzenie do pomiaru poziomu promieniowania",
+                            Value = "Licznik Geigera"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            Category = 5,
+                            Description = "Zajmuje dużo miejsca i nie daje korzyści w bunkrze",
+                            Value = "Dmuchany jednorożec"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            Category = 6,
+                            Description = "W pełni sił fizycznych, płodny",
+                            Value = "Mężczyzna, 28 lat"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            Category = 6,
+                            Description = "W pełni sił fizycznych, płodna",
+                            Value = "Kobieta, 26 lat"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            Category = 6,
+                            Description = "Duże doświadczenie życiowe i dobra kondycja",
+                            Value = "Mężczyzna, 45 lat"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            Category = 6,
+                            Description = "Dobra kondycja fizyczna, wysoka odporność na stres",
+                            Value = "Kobieta, 34 lata"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            Category = 6,
+                            Description = "Emeryt, duże doświadczenie, ale ograniczona wydolność fizyczna",
+                            Value = "Mężczyzna, 68 lat"
+                        });
                 });
 
             modelBuilder.Entity("Bunker.Api.Models.Player", b =>
