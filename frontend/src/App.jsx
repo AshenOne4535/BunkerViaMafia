@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { ThemeProvider, useTheme } from './context/ThemeContext'
 import JoinForm from './components/JoinForm'
 import HostLobby from './components/HostLobby'
