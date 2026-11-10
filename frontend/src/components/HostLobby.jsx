@@ -52,13 +52,12 @@ const CONNECTION = {
 // TODO (SignalR, Task 10): lista graczy przyjdzie z serwera przez props `players`.
 // signal: 0 = offline, 1-4 = siła sygnału.
 const DEMO_PLAYERS = [
-  { id: 'p1', nick: 'Szczur', ready: true, signal: 4 },
-  { id: 'p2', nick: 'Doktor Kot', ready: true, signal: 3 },
-  { id: 'p3', nick: 'Marek', ready: true, signal: 3 },
-  { id: 'p4', nick: 'Nika', ready: true, signal: 3 },
-  { id: 'p5', nick: 'Wilk', ready: true, signal: 4 },
+  { id: 'p1', nickname: 'Szczur', isReady: true, isOnline: true },
+  { id: 'p2', nickname: 'Doktor Kot', isReady: true, isOnline: true },
+  { id: 'p3', nickname: 'Marek', isReady: true, isOnline: true },
+  { id: 'p4', nickname: 'Nika', isReady: true, isOnline: true },
+  { id: 'p5', nickname: 'Wilk', isReady: true, isOnline: true },
 ]
-
 // ---------------------------------------------------------------------------
 // Funkcje pomocnicze
 // ---------------------------------------------------------------------------
@@ -82,7 +81,7 @@ function getLobbyStatus(players) {
       hint: `DO STARTU POTRZEBNE MIN. ${MIN_PLAYERS_TO_START} GRACZY.`,
     }
   }
-  const waiting = players.filter((p) => p.signal > 0 && !p.ready).length
+  const waiting = players.filter((p) => p.isOnline && !p.isReady).length
   if (waiting > 0) {
     return {
       tone: 'wait',
@@ -225,8 +224,8 @@ function SignalBars({ level }) {
 }
 
 function PlayerSlot({ player }) {
-  const online = player.signal > 0
-  const state = !online ? 'offline' : player.ready ? 'ready' : 'waiting'
+  const online = player.isOnline
+  const state = !online ? 'offline' : player.isReady ? 'ready' : 'waiting'
   const statusText = {
     ready: 'READY / GOTOWY',
     waiting: 'NIEGOTOWY',
@@ -237,12 +236,12 @@ function PlayerSlot({ player }) {
     <li className={`slot slot--filled slot--${state}`}>
       <div className="slot__top">
         <span className="slot__avatar" aria-hidden="true">
-          {getInitials(player.nick)}
+          {getInitials(player.nickname)}
         </span>
-        <span className="slot__nick" title={player.nick}>
-          {player.nick}
+        <span className="slot__nick" title={player.nickname}>
+          {player.nickname}
         </span>
-        <SignalBars level={player.signal} />
+        <SignalBars level={online ? 4 : 0} />
       </div>
       <div className="slot__bottom">
         <span className="slot__status">
