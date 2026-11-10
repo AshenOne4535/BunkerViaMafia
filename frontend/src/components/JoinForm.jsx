@@ -31,15 +31,21 @@ function validate({ code, nick }) {
   return errors
 }
 
-// TODO (SignalR, Task 7 + 10): zamienić na prawdziwe wywołanie serwera,
-// które sprawdza, czy pokój istnieje, i dołącza gracza.
-// Na razie symulujemy odpowiedź. Kod "ZZZZ" udaje nieistniejący pokój.
+// Prawdziwe wywołanie backendu C# (zapis do PostgreSQL + powiadomienie SignalR)
 async function joinRoom({ code, nick }) {
-  await new Promise((resolve) => setTimeout(resolve, 600))
-  if (code === 'ZZZZ') {
-    throw new Error('Nie znaleziono pokoju o tym kodzie')
+  const res = await fetch(`${API_URL}/api/rooms/join`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ roomCode: code, nickname: nick }),
+  })
+
+  const data = await res.json().catch(() => null)
+
+  if (!res.ok) {
+    throw new Error(data?.message || 'Nie udało się dołączyć do pokoju.')
   }
-  return { code, nick }
+
+  return { code, nick: data.nickname, player: data }
 }
 
 function LockIcon() {
@@ -63,8 +69,11 @@ function LockIcon() {
 }
 
 export default function JoinForm({ onJoined, initialCode = '' }) {
+  const urlCode = new URLSearchParams(window.location.search).get('code') || initialCode
   const [nick, setNick] = useState('')
-  const [code, setCode] = useState(initialCode.toUpperCase().slice(0, CODE_LENGTH))
+  const [code, setCode] = useState(
+    urlCode.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, CODE_LENGTH)
+  )
   const [touched, setTouched] = useState({ nick: false, code: false })
   const [submitError, setSubmitError] = useState('')
   const [loading, setLoading] = useState(false)
