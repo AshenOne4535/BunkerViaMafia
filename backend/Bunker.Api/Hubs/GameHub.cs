@@ -1,9 +1,18 @@
+using Bunker.Api.Data;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bunker.Api.Hubs;
 
 public class GameHub : Hub
 {
+    private readonly BunkerDbContext _db;
+
+    public GameHub(BunkerDbContext db)
+    {
+        _db = db;
+    }
+
     public async Task JoinRoomGroup(string roomCode)
     {
         var code = roomCode.ToUpper().Trim();
