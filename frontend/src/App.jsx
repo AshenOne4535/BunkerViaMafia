@@ -65,6 +65,7 @@ function AppContent() {
 
     async function initHostRoom() {
       try {
+        // 1. Создаем комнату в БД PostgreSQL и получаем QR-код
         const frontendUrl = window.location.origin
         const res = await fetch(`${API_URL}/api/rooms/create?frontendUrl=${encodeURIComponent(frontendUrl)}`, {
           method: 'POST',
@@ -75,11 +76,13 @@ function AppContent() {
         setRoomData(data)
         setPlayers(data.room.players || [])
 
+        // 2. Подключаемся к SignalR Хабу
         connection = new signalR.HubConnectionBuilder()
           .withUrl(`${API_URL}/hubs/game`)
           .withAutomaticReconnect()
           .build()
 
+        // Слушаем событие входа нового игрока (названия полей уже совпадают!)
         connection.on('PlayerJoined', (newPlayer) => {
           setPlayers((prev) => [...prev, newPlayer])
         })
@@ -100,7 +103,9 @@ function AppContent() {
     initHostRoom()
 
     return () => {
-      if (connection) connection.stop()
+      if (connection) {
+        connection.stop()
+      }
     }
   }, [isHost])
 
