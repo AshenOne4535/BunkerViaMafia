@@ -1,16 +1,15 @@
 using System.Text.Json.Serialization;
 using Bunker.Api.Data;
+using Bunker.Api.Hubs;
 using Bunker.Api.Middleware;
 using Bunker.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Реєстрація контексту БД PostgreSQL
 builder.Services.AddDbContext<BunkerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Регистрация сервиса комнат (Scoped, так как работает с БД)
 builder.Services.AddScoped<IRoomService, RoomService>();
 
 builder.Services.AddCors(options =>
@@ -28,6 +27,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 builder.Services.AddSignalR();
@@ -44,5 +44,6 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("AllowReact");
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<GameHub>("/hubs/game");
 
 app.Run();

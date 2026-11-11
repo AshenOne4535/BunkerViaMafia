@@ -1,5 +1,7 @@
-﻿using Bunker.Api.Services;
+﻿using Bunker.Api.Hubs;
+using Bunker.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Bunker.Api.Controllers;
 
@@ -8,17 +10,16 @@ namespace Bunker.Api.Controllers;
 public class RoomsController : ControllerBase
 {
     private readonly IRoomService _roomService;
+    private readonly IHubContext<GameHub> _hubContext;
 
-    public RoomsController(IRoomService roomService)
+    public RoomsController(IRoomService roomService, IHubContext<GameHub> hubContext)
     {
         _roomService = roomService;
+        _hubContext = hubContext;
     }
 
     [HttpGet("ping")]
-    public IActionResult Ping()
-    {
-        return Ok(new { message = "Backend is working!" });
-    }
+    public IActionResult Ping() => Ok(new { message = "Backend is working!" });
 
     [HttpPost("create")]
     public async Task<IActionResult> CreateRoom([FromQuery] string frontendUrl = "http://localhost:5173")
@@ -46,6 +47,11 @@ public class RoomsController : ControllerBase
     public async Task<IActionResult> JoinRoom([FromBody] JoinRoomRequest request)
     {
         var player = await _roomService.JoinRoomAsync(request.RoomCode, request.Nickname);
+        var code = request.RoomCode.ToUpper().Trim();
+
+        // Мгновенное уведомление по WebSockets
+        await _hubContext.Clients.Group(code).SendAsync("PlayerJoined", player);
+
         return Ok(player);
     }
 }
