@@ -109,6 +109,20 @@ function AppContent() {
     }
   }, [isHost])
 
+  async function handleStartGame(settings) {
+    if (!roomData?.room?.code) return
+    try {
+      const res = await fetch(`${API_URL}/api/rooms/${roomData.room.code}/assign-roles`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.message || 'Błąd losowania ról')
+      console.log('Gra wystartowała, role rozdane:', data)
+    } catch (err) {
+      console.error('Błąd startu gry:', err.message)
+    }
+  }
+
   if (isHost) {
     return (
       <HostLobby
@@ -119,7 +133,7 @@ function AppContent() {
         joinUrl={roomData?.joinUrl}
         navItems={HOST_NAV}
         headerExtra={<ThemeToggle />}
-        onStart={(data) => console.log('START', data)}
+        onStart={handleStartGame}
       />
     )
   }
@@ -138,7 +152,11 @@ function AppContent() {
         <ThemeToggle />
       </header>
 
-      {joined ? <YourCard roomCode={joined.code} /> : <JoinForm onJoined={setJoined} />}
+      {joined ? (
+  <YourCard roomCode={joined.code} playerId={joined.player?.id} />
+) : (
+  <JoinForm onJoined={setJoined} />
+)}
     </div>
   )
 }

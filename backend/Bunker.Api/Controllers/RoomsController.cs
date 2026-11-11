@@ -54,4 +54,50 @@ public class RoomsController : ControllerBase
 
         return Ok(player);
     }
+
+    // Task 13: Losowanie tajnych ról dla graczy w pokoju
+    [HttpPost("{code}/assign-roles")]
+    public async Task<IActionResult> AssignRoles(string code)
+    {
+        var normalizedCode = code.ToUpper().Trim();
+        var assignments = await _roomService.AssignSecretRolesAsync(normalizedCode);
+
+        // Личное сообщение каждому игроку в его телефон (если известен его ConnectionId)
+        foreach (var item in assignments)
+        {
+            if (!string.IsNullOrEmpty(item.ConnectionId))
+            {
+                await _hubContext.Clients.Client(item.ConnectionId).SendAsync("SecretRoleAssigned", new
+                {
+                    playerId = item.PlayerId,
+                    role = item.Role,
+                    roleNamePl = item.RoleNamePl,
+                    roleDescriptionPl = item.RoleDescriptionPl
+                });
+            }
+        }
+
+        // Общее уведомление для комнаты (без раскрытия чужих ролей!)
+        await _hubContext.Clients.Group(normalizedCode).SendAsync("RolesAssigned", new
+        {
+            roomCode = normalizedCode,
+            playersCount = assignments.Count
+        });
+
+        // Возвращаем на экран ТВ только факт успешной раздачи, без спойлеров ролей
+        return Ok(new
+        {
+            message = "Role zostały pomyślnie przydzielone.",
+            roomCode = normalizedCode,
+            playersCount = assignments.Count
+        });
+    }
+
+    // Pobranie tajnej roli konkretnego gracza (np. dla ekranu telefonu gracza)
+    [HttpGet("{code}/players/{playerId:guid}/role")]
+    public async Task<IActionResult> GetPlayerRole(string code, Guid playerId)
+    {
+        var roleInfo = await _roomService.GetPlayerRoleAsync(code, playerId);
+        return Ok(roleInfo);
+    }
 }
