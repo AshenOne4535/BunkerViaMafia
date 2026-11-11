@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { getMyCard } from '../api/myCard'
 import './YourCard.css'
+import * as signalR from '@microsoft/signalr'
+const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7110'
 
 // Role z backendu (SecretRole) -> tekst na banerze.
 const ROLES = {
@@ -144,7 +146,7 @@ function TraitTile({ trait }) {
   )
 }
 
-export default function YourCard({ roomCode }) {
+export default function YourCard({ roomCode, playerId }) {
   const [card, setCard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -152,8 +154,9 @@ export default function YourCard({ roomCode }) {
 
   useEffect(() => {
     let cancelled = false
+    let connection = null
 
-    getMyCard()
+    getMyCard(roomCode, playerId)
       .then((data) => {
         if (cancelled) return
         setCard(data)
@@ -167,10 +170,29 @@ export default function YourCard({ roomCode }) {
         if (!cancelled) setLoading(false)
       })
 
+    if (roomCode && playerId) {
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${API_URL}/hubs/game`)
+        .withAutomaticReconnect()
+        .build()
+
+      connection.on('SecretRoleAssigned', (payload) => {
+        if (!cancelled && payload.role) {
+          setCard((prev) => (prev ? { ...prev, role: payload.role } : prev))
+        }
+      })
+
+      connection
+        .start()
+        .then(() => connection.invoke('RegisterPlayerConnection', roomCode, playerId))
+        .catch((err) => console.error('SignalR phone error:', err))
+    }
+
     return () => {
       cancelled = true
+      if (connection) connection.stop()
     }
-  }, [attempt])
+  }, [roomCode, playerId, attempt])
 
   const retry = () => {
     setLoading(true)

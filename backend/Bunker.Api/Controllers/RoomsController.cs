@@ -62,7 +62,7 @@ public class RoomsController : ControllerBase
         var normalizedCode = code.ToUpper().Trim();
         var assignments = await _roomService.AssignSecretRolesAsync(normalizedCode);
 
-        // Wysyłamy każdemu połączonemu graczowi jego tajną rolę przez SignalR
+        // Личное сообщение каждому игроку в его телефон (если известен его ConnectionId)
         foreach (var item in assignments)
         {
             if (!string.IsNullOrEmpty(item.ConnectionId))
@@ -77,14 +77,20 @@ public class RoomsController : ControllerBase
             }
         }
 
-        // Powiadomienie dla pokoju, że role zostały rozdane
+        // Общее уведомление для комнаты (без раскрытия чужих ролей!)
         await _hubContext.Clients.Group(normalizedCode).SendAsync("RolesAssigned", new
         {
             roomCode = normalizedCode,
             playersCount = assignments.Count
         });
 
-        return Ok(assignments);
+        // Возвращаем на экран ТВ только факт успешной раздачи, без спойлеров ролей
+        return Ok(new
+        {
+            message = "Role zostały pomyślnie przydzielone.",
+            roomCode = normalizedCode,
+            playersCount = assignments.Count
+        });
     }
 
     // Pobranie tajnej roli konkretnego gracza (np. dla ekranu telefonu gracza)
