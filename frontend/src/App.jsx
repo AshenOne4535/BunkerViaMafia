@@ -119,7 +119,12 @@ function AppContent() {
         joinUrl={roomData?.joinUrl}
         navItems={HOST_NAV}
         headerExtra={<ThemeToggle />}
-        onStart={(data) => console.log('START', data)}
+        onStart={ async () => {
+          if (!roomData?.room?.code) return
+          await fetch(`${API_URL}/api/rooms/${roomData.room.code}/assign-roles`, {
+            method: 'POST',
+          })
+        }}
       />
     )
   }
