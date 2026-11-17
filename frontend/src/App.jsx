@@ -3,6 +3,7 @@ import * as signalR from '@microsoft/signalr'
 import { ThemeProvider, useTheme } from './context/ThemeContext'
 import JoinForm from './components/JoinForm'
 import HostLobby from './components/HostLobby'
+import Waiting from './components/Waiting'
 import YourCard from './components/YourCard'
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7110'
@@ -52,6 +53,8 @@ function AppContent() {
 
   // Состояние для экрана телефона (Task 11 -> Task 15)
   const [joined, setJoined] = useState(null)
+  // Poczekalnia -> Twoja Karta; start gry przyjdzie z serwera (Task 3), na razie przycisk tylko w trybie dev
+  const [gameStarted, setGameStarted] = useState(false)
 
   // Состояние для экрана Хоста / ТВ (Task 7, 8, 10)
   const [roomData, setRoomData] = useState(null)
@@ -152,11 +155,27 @@ function AppContent() {
         <ThemeToggle />
       </header>
 
-      {joined ? (
-  <YourCard roomCode={joined.code} playerId={joined.player?.id} />
-) : (
-  <JoinForm onJoined={setJoined} />
-)}
+      {!joined && <JoinForm onJoined={setJoined} />}
+      {joined && !gameStarted && (
+        <>
+          <Waiting
+            roomCode={joined.code}
+            nick={joined.nick}
+            playerId={joined.player?.id}
+            onGameStart={() => setGameStarted(true)}
+          />
+          {import.meta.env.DEV && (
+            <button
+              type="button"
+              onClick={() => setGameStarted(true)}
+              style={{ margin: '0 auto 12px', fontSize: 12, color: 'var(--muted)', background: 'none', border: 0, cursor: 'pointer' }}
+            >
+              [dev] symuluj start gry →
+            </button>
+          )}
+        </>
+      )}
+      {joined && gameStarted && <YourCard roomCode={joined.code} playerId={joined.player?.id} />}
     </div>
   )
 }
