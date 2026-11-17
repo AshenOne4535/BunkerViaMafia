@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Bunker.Api.Middleware;
 using Bunker.Api.Services;
 using System.Text.Json.Serialization;
-using Bunker.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +23,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Реєстрація сервісу роздачі карток (Task 14)
+builder.Services.AddScoped<CardAssignmentService>();
 
 // Add services to the container.
 builder.Services.AddControllers()
