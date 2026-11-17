@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './JoinForm.css'
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7110'
+
 const CODE_LENGTH = 4
 const NICK_MIN = 2
 const NICK_MAX = 16
