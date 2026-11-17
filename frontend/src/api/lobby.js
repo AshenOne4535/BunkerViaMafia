@@ -1,27 +1,24 @@
-// TYMCZASOWE DANE dla ekranu „Poczekalnia" (Task 12).
-//
-// TODO (Task 3 / Task 10 SignalR): podmienić `getLobby` na prawdziwe dane.
-// Serwer wysyła zdarzenie `PlayerJoined`, a host zna listę graczy pokoju.
-// Reszta aplikacji używa tylko tej funkcji, więc zmiana ma być w jednym miejscu.
+const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7110'
 
 export const MAX_PLAYERS = 8
 
-const MOCK_OTHERS = ['Doktor Kot', 'Marek', 'Nika', 'Wilk']
-
 export async function getLobby({ roomCode, nick }) {
-  // symulacja opóźnienia sieci
-  await new Promise((resolve) => setTimeout(resolve, 400))
+  const res = await fetch(`${API_URL}/api/rooms/${encodeURIComponent(roomCode)}`)
+  if (!res.ok) {
+    throw new Error('Nie udało się pobrać listy graczy.')
+  }
+
+  const room = await res.json()
+  const players = (room.players || []).map((p) => ({
+    id: p.id,
+    nickname: p.nickname,
+    isReady: p.isReady,
+    isMe: p.nickname.toLowerCase() === nick.trim().toLowerCase(),
+  }))
+
   return {
-    roomCode,
-    maxPlayers: MAX_PLAYERS,
-    players: [
-      { id: 'me', nickname: nick, isReady: true, isMe: true },
-      ...MOCK_OTHERS.map((name, i) => ({
-        id: `p${i + 2}`,
-        nickname: name,
-        isReady: true,
-        isMe: false,
-      })),
-    ],
+    roomCode: room.code,
+    maxPlayers: room.maxPlayers || MAX_PLAYERS,
+    players,
   }
 }

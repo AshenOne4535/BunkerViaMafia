@@ -1,6 +1,10 @@
+
 import { useEffect, useState } from 'react'
+import * as signalR from '@microsoft/signalr'
 import { getLobby } from '../api/lobby'
 import './Waiting.css'
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7110'
 
 // "Doktor Kot" -> "DK", "Szczur" -> "SZ"
 function getInitials(nick) {
@@ -59,7 +63,8 @@ function Icon({ name, size = 18 }) {
   )
 }
 
-export default function Waiting({ roomCode, nick }) {
+// В функции Waiting (строки 56-83):
+export default function Waiting({ roomCode, nick, playerId, onGameStart }) {
   const [lobby, setLobby] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -67,6 +72,7 @@ export default function Waiting({ roomCode, nick }) {
 
   useEffect(() => {
     let cancelled = false
+    let connection = null
 
     getLobby({ roomCode, nick })
       .then((data) => {
@@ -82,10 +88,56 @@ export default function Waiting({ roomCode, nick }) {
         if (!cancelled) setLoading(false)
       })
 
+    if (roomCode) {
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${API_URL}/hubs/game`)
+        .withAutomaticReconnect()
+        .build()
+
+      // 1. Когда заходит новый игрок — добавляем его в список на телефоне
+      connection.on('PlayerJoined', (newPlayer) => {
+        if (cancelled) return
+        setLobby((prev) => {
+          if (!prev) return prev
+          if (prev.players.some((p) => p.id === newPlayer.id)) return prev
+          return {
+            ...prev,
+            players: [
+              ...prev.players,
+              {
+                id: newPlayer.id,
+                nickname: newPlayer.nickname,
+                isReady: newPlayer.isReady,
+                isMe: newPlayer.nickname.toLowerCase() === nick.trim().toLowerCase(),
+              },
+            ],
+          }
+        })
+      })
+
+      // 2. Когда Хост нажал START GRY — переключаем телефон на экран YourCard!
+      connection.on('RolesAssigned', () => {
+        if (!cancelled) {
+          onGameStart?.()
+        }
+      })
+
+      connection
+        .start()
+        .then(() => {
+          if (playerId) {
+            return connection.invoke('RegisterPlayerConnection', roomCode, playerId)
+          }
+          return connection.invoke('JoinRoomGroup', roomCode)
+        })
+        .catch((err) => console.error('SignalR waiting error:', err))
+    }
+
     return () => {
       cancelled = true
+      if (connection) connection.stop()
     }
-  }, [roomCode, nick, attempt])
+  }, [roomCode, nick, playerId, onGameStart, attempt])
 
   const retry = () => {
     setLoading(true)

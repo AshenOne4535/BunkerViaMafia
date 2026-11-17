@@ -158,7 +158,12 @@ function AppContent() {
       {!joined && <JoinForm onJoined={setJoined} />}
       {joined && !gameStarted && (
         <>
-          <Waiting roomCode={joined.code} nick={joined.nick} />
+          <Waiting
+            roomCode={joined.code}
+            nick={joined.nick}
+            playerId={joined.player?.id}
+            onGameStart={() => setGameStarted(true)}
+          />
           {import.meta.env.DEV && (
             <button
               type="button"
