@@ -34,11 +34,14 @@ public class GameCardsController : ControllerBase
 	}
 
 	// GET: api/rooms/{roomCode}/cards
+	// GET: api/rooms/{roomCode}/cards
 	[HttpGet]
 	public async Task<IActionResult> GetRoomCards(string roomCode)
 	{
+		var code = roomCode.ToUpper().Trim();
+
 		var playersWithCards = await _context.Players
-			.Where(p => p.Room != null && p.Room.Code == roomCode)
+			.Where(p => p.Room != null && p.Room.Code == code)
 			.Select(p => new
 			{
 				p.Id,
@@ -47,7 +50,8 @@ public class GameCardsController : ControllerBase
 					pt.TraitCard!.Id,
 					Category = pt.TraitCard.Category.ToString(),
 					pt.TraitCard.Value,
-					pt.TraitCard.Description
+					pt.TraitCard.Description,
+					pt.IsRevealed
 				})
 			})
 			.ToListAsync();

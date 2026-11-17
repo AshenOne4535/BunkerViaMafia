@@ -18,6 +18,7 @@ public class CardAssignmentService
 	/// </summary>
 	public async Task AssignCardsToRoomAsync(string roomCode)
 	{
+		roomCode = roomCode.ToUpper().Trim();
 		var room = await _context.Rooms
 			.Include(r => r.Players)
 				.ThenInclude(p => p.PlayerTraitCards)
