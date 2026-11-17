@@ -68,6 +68,7 @@ function AppContent() {
 
     async function initHostRoom() {
       try {
+        // 1. Создаем комнату в БД PostgreSQL и получаем QR-код
         const frontendUrl = window.location.origin
         const res = await fetch(`${API_URL}/api/rooms/create?frontendUrl=${encodeURIComponent(frontendUrl)}`, {
           method: 'POST',
@@ -78,11 +79,13 @@ function AppContent() {
         setRoomData(data)
         setPlayers(data.room.players || [])
 
+        // 2. Подключаемся к SignalR Хабу
         connection = new signalR.HubConnectionBuilder()
           .withUrl(`${API_URL}/hubs/game`)
           .withAutomaticReconnect()
           .build()
 
+        // Слушаем событие входа нового игрока (названия полей уже совпадают!)
         connection.on('PlayerJoined', (newPlayer) => {
           setPlayers((prev) => [...prev, newPlayer])
         })
@@ -103,9 +106,25 @@ function AppContent() {
     initHostRoom()
 
     return () => {
-      if (connection) connection.stop()
+      if (connection) {
+        connection.stop()
+      }
     }
   }, [isHost])
+
+  async function handleStartGame(settings) {
+    if (!roomData?.room?.code) return
+    try {
+      const res = await fetch(`${API_URL}/api/rooms/${roomData.room.code}/assign-roles`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.message || 'Błąd losowania ról')
+      console.log('Gra wystartowała, role rozdane:', data)
+    } catch (err) {
+      console.error('Błąd startu gry:', err.message)
+    }
+  }
 
   if (isHost) {
     return (
@@ -117,7 +136,7 @@ function AppContent() {
         joinUrl={roomData?.joinUrl}
         navItems={HOST_NAV}
         headerExtra={<ThemeToggle />}
-        onStart={(data) => console.log('START', data)}
+        onStart={handleStartGame}
       />
     )
   }
@@ -151,7 +170,7 @@ function AppContent() {
           )}
         </>
       )}
-      {joined && gameStarted && <YourCard roomCode={joined.code} />}
+      {joined && gameStarted && <YourCard roomCode={joined.code} playerId={joined.player?.id} />}
     </div>
   )
 }
