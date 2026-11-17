@@ -7,10 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. Контекст БД PostgreSQL
 builder.Services.AddDbContext<BunkerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// 2. Сервисы (оба обязательно Scoped!)
 builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<CardAssignmentService>();
 
 builder.Services.AddCors(options =>
 {
@@ -35,6 +38,7 @@ builder.Services.AddSignalR()
     {
         options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
