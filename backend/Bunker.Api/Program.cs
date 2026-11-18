@@ -43,6 +43,21 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Dev: automatycznie stosuje migracje (m.in. SeedTraitCards z kartami cech), zeby baza nie byla pusta
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BunkerDbContext>();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Nie udalo sie zastosowac migracji bazy danych.");
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
