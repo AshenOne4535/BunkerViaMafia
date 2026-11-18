@@ -120,7 +120,10 @@ function AppContent() {
       const cardsRes = await fetch(`${API_URL}/api/rooms/${code}/cards/assign`, {
         method: 'POST',
       })
-      if (!cardsRes.ok) throw new Error('Błąd przydziału kart cech')
+      if (!cardsRes.ok) {
+        const body = await cardsRes.json().catch(() => null)
+        throw new Error(body?.error || body?.message || 'Błąd przydziału kart cech')
+      }
 
       // 2. Раздаем секретные роли и рассылаем сигнал старта по SignalR (Task 13)
       const rolesRes = await fetch(`${API_URL}/api/rooms/${code}/assign-roles`, {
