@@ -102,6 +102,9 @@ public class CardAssignmentService
         if (room.CurrentPhase == GamePhase.Lobby)
             throw new InvalidOperationException("Nie można odsłaniać kart przed rozpoczęciem gry.");
 
+        if (room.CurrentPhase == GamePhase.NightActions)
+            throw new InvalidOperationException("Nie można odsłaniać kart cech podczas fazy nocy.");
+
         if (room.CurrentPhase == GamePhase.Ended)
             throw new InvalidOperationException("Gra w tym pokoju już się zakończyła.");
 

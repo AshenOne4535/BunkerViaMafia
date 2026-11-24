@@ -1,5 +1,6 @@
 @Bunker.Api_HostAddress = http://localhost:5262
 @roomCode = A7X2
+@playerId = 00000000-0000-0000-0000-000000000000
 
 ### 0. Healthcheck API
 GET {{Bunker.Api_HostAddress}}/api/rooms/ping
@@ -57,6 +58,27 @@ Accept: application/json
 
 ###
 POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/assign-roles
+Accept: application/json
+
+### =========================================================================
+### TASK 16: Mechanika odsłaniania karty cechy ze smartfona
+### =========================================================================
+
+### Pobierz wszystkie 6 kart konkretnego gracza (widok telefonu)
+GET {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/cards/player/{{playerId}}
+Accept: application/json
+
+### Odsłoń wybraną kartę cechy (wysyła "CardRevealed" + wpis do Feedu Wydarzeń)
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/cards/reveal
+Content-Type: application/json
+
+{
+  "playerId": "{{playerId}}",
+  "traitCardId": 1
+}
+
+### Pobierz karty wszystkich graczy dla ekranu TV (ukryte = "???")
+GET {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/cards
 Accept: application/json
 
 ### =========================================================================
