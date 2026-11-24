@@ -230,7 +230,13 @@
   gap: 12px;
 }
 
+.ycard__tile-item {
+  list-style: none;
+  display: flex;
+}
+
 .ycard__tile {
+  width: 100%;
   min-height: 128px;
   padding: 12px;
   display: flex;
@@ -240,6 +246,37 @@
   border: 1px solid var(--border);
   border-radius: 3px;
   color: var(--muted);
+  font-family: var(--font-head);
+  text-align: left;
+}
+
+.ycard__tile--interactive {
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, transform 0.05s;
+}
+
+.ycard__tile--interactive:hover:not(:disabled) {
+  border-color: var(--accent-border);
+}
+
+.ycard__tile--interactive:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.ycard__tile--interactive:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 2px;
+}
+
+.ycard__tile--interactive:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.ycard__tile--selected {
+  border-color: var(--lime);
+  background: var(--accent-bg);
+  color: var(--lime);
 }
 
 .ycard__tile--known {
@@ -281,6 +318,30 @@
   overflow-wrap: anywhere;
 }
 
+.ycard__tile-state {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.ycard__tile--known .ycard__tile-state,
+.ycard__tile--selected .ycard__tile-state {
+  color: var(--lime);
+}
+
+.ycard__reveal-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: 3px;
+}
+
 .ycard__note {
   margin-top: 14px;
   display: flex;
@@ -289,6 +350,82 @@
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--muted);
+}
+
+/* --- Dolny pasek potwierdzenia odsłonięcia karty (Task 16) --- */
+
+.ycard__reveal-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 18px -16px -28px;
+  padding: 12px 16px 20px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--lime);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ycard__reveal-summary {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ycard__reveal-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.ycard__reveal-actions {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+}
+
+.ycard__cancel-btn {
+  min-height: 48px;
+  padding: 0 16px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.ycard__cancel-btn:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+.ycard__reveal-btn {
+  min-height: 48px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--lime);
+  border: 1px solid var(--lime);
+  border-radius: 3px;
+  color: var(--on-lime);
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.ycard__reveal-btn:disabled,
+.ycard__cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* tekst tylko dla czytników ekranu */
