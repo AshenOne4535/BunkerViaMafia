@@ -3,7 +3,7 @@ using Bunker.Api.Data;
 using Bunker.Api.Hubs;
 using Bunker.Api.Middleware;
 using Bunker.Api.Services;
-using Microsoft.EntityFrameworkCore;  
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
