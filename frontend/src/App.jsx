@@ -1,61 +1,9 @@
-import { ThemeProvider, useTheme } from './context/ThemeContext'
+import { ThemeProvider } from './context/ThemeContext'
+import { GameProvider, useGame } from './context/GameContext.jsx'
 import JoinForm from './components/JoinForm'
 import HostLobby from './components/HostLobby'
-
-function MoonIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  )
-}
-
-function SunIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="5" />
-      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-    </svg>
-  )
-}
-
-// Przycisk pokazuje aktualny motyw; kliknięcie przełącza na drugi.
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme()
-  const isDark = theme === 'dark'
-
-  return (
-    <button
-      type="button"
-      className="theme-toggle-btn"
-      onClick={toggleTheme}
-      title={isDark ? 'Przełącz na jasny motyw' : 'Przełącz na ciemny motyw'}
-    >
-      {isDark ? <MoonIcon /> : <SunIcon />}
-      {isDark ? 'Ciemny' : 'Jasny'}
-    </button>
-  )
-}
+import HostGameView from './components/HostGameView.jsx'
+import ThemeToggleButton from './components/ThemeToggleButton.jsx'
 
 // Linki w nagłówku ekranu hosta. "WIDOK TELEFONU" widać tylko w trybie
 // deweloperskim (npm run dev), w produkcji go nie ma.
@@ -65,6 +13,19 @@ const HOST_NAV = [
   ...(import.meta.env.DEV ? [{ id: 'phone', label: 'WIDOK TELEFONU', href: '/' }] : []),
 ]
 
+// Ekran hosta (TV): lobby przed startem, potem ekran gry.
+// Musi być wewnątrz <GameProvider>, bo korzysta z useGame().
+function HostScreen() {
+  const { phase, startGame } = useGame()
+  const themeToggle = <ThemeToggleButton />
+
+  return phase === 'lobby' ? (
+    <HostLobby navItems={HOST_NAV} headerExtra={themeToggle} onStart={startGame} />
+  ) : (
+    <HostGameView navItems={HOST_NAV} headerExtra={themeToggle} />
+  )
+}
+
 function AppContent() {
   // Tymczasowo, do czasu routera: /?host otwiera ekran hosta (TV),
   // zwykły adres otwiera formularz gracza (telefon).
@@ -72,11 +33,9 @@ function AppContent() {
 
   if (isHost) {
     return (
-      <HostLobby
-        navItems={HOST_NAV}
-        headerExtra={<ThemeToggle />}
-        onStart={(data) => console.log('START', data)}
-      />
+      <GameProvider>
+        <HostScreen />
+      </GameProvider>
     )
   }
 
@@ -91,7 +50,7 @@ function AppContent() {
             widok hosta →
           </a>
         )}
-        <ThemeToggle />
+        <ThemeToggleButton />
       </header>
 
       <JoinForm onJoined={(data) => console.log('Dołączono:', data)} />

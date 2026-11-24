@@ -1,0 +1,54 @@
+.ap {
+  min-height: 0; display: flex; flex-direction: column;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 3px;
+}
+.ap__head { padding: 0.8em 0.9em 0.2em; }
+.ap__list {
+  margin: 0; padding: 0.6em 0.9em 0.9em; list-style: none; flex: 1; min-height: 0;
+  display: flex; flex-direction: column; gap: 0.7em; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+
+.ap-card {
+  display: flex; flex-direction: column; gap: 0.55em; padding: 0.7em 0.8em;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
+}
+.ap-card.is-speaker { border-color: var(--lime); box-shadow: inset 0 0 0 1px var(--lime); }
+.ap-card.is-exiled { opacity: 0.55; }
+.ap-card.is-exiled .ap-card__nick { text-decoration: line-through; }
+
+.ap-card__head { display: flex; align-items: center; gap: 0.7em; }
+.ap-avatar {
+  position: relative; width: 2.4em; height: 2.4em; display: grid; place-items: center;
+  background: var(--bg); border: 1px solid var(--lime); border-radius: 2px;
+  font: 500 0.95em var(--font-head); letter-spacing: 0.04em; color: var(--text-h);
+}
+.ap-avatar::after {
+  content: ''; position: absolute; left: 0.25em; bottom: 0.2em; width: 0.5em; height: 2px; background: var(--lime);
+}
+.ap-card__nick { font: 400 1.5em/1.1 var(--font-head); color: var(--text-h); }
+
+.ap-status {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 0.5em;
+  font-size: 0.65em; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.ap-status--active { color: var(--text); }
+.ap-status__dot { width: 0.7em; height: 0.7em; border-radius: 50%; background: var(--lime); }
+.ap-status--muted { color: var(--warn); }
+.ap-status--exiled { color: var(--danger); }
+
+.ap-chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 0.4em; }
+.ap-chip {
+  display: inline-flex; align-items: center; gap: 0.5em; padding: 0.25em 0.6em;
+  border: 1px solid var(--border); border-radius: 2px;
+  font-size: 0.78em; letter-spacing: 0.04em; text-transform: uppercase;
+}
+/* zakryta: przygaszona, z zaszyfrowanym blokiem (rewers karty) */
+.ap-chip--closed { background: var(--bg-card); color: var(--muted); }
+.ap-chip__redacted {
+  width: 3.2em; height: 1em; border-radius: 1px;
+  background: repeating-linear-gradient(135deg, var(--muted) 0 0.35em, var(--placeholder) 0.35em 0.5em);
+}
+/* odkryta: podświetlona, widać wartość */
+.ap-chip--open { background: var(--accent-bg); border-color: var(--accent-border); color: var(--text); }
+.ap-chip__value { font-weight: 500; color: var(--text-h); }
