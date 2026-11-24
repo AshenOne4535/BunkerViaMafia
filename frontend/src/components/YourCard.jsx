@@ -123,10 +123,10 @@ function Icon({ name, size = 18 }) {
   )
 }
 
-function TraitTile({ trait, isSelected, disabled, onSelect }) {
+function TraitTile({ trait, isSelected, disabled, disabledReason, onSelect }) {
   const meta = TRAITS[trait.category] ?? { label: trait.category, icon: 'user' }
   const known = trait.isRevealed
-  const canReveal = !known && typeof trait.id === 'number' && !disabled
+  const canReveal = !known && typeof trait.id === 'number' && !disabled && !disabledReason
 
   const content = (
     <>
@@ -148,9 +148,11 @@ function TraitTile({ trait, isSelected, disabled, onSelect }) {
             ? trait.revealedOnDay
               ? `ODSŁONIĘTA • DZIEŃ ${trait.revealedOnDay}`
               : 'ODSŁONIĘTA'
-            : isSelected
-              ? 'WYBRANA DO ODSŁONIĘCIA'
-              : 'DOTKNIJ, ABY ODSŁONIĆ'}
+            : disabledReason
+              ? disabledReason
+              : isSelected
+                ? 'WYBRANA DO ODSŁONIĘCIA'
+                : 'DOTKNIJ, ABY ODSŁONIĆ'}
         </p>
       </div>
     </>
@@ -218,6 +220,9 @@ export default function YourCard({ roomCode, playerId }) {
 
       connection.on('TimerUpdated', (payload) => {
         if (!cancelled && payload) {
+          if (payload.currentPhase === 'NightActions' || payload.currentPhase === 'Ended') {
+            setSelectedTraitCategory(null)
+          }
           setCard((prev) =>
             prev
               ? {
@@ -340,9 +345,17 @@ export default function YourCard({ roomCode, playerId }) {
   const role = ROLES[card.role] ?? { label: 'BRAK ROLI' }
   const phase = PHASES[card.phase] ?? PHASES.Lobby
   const known = card.traits.filter((t) => t.isRevealed).length
-  const selectedTrait = card.traits.find(
-    (t) => t.category === selectedTraitCategory && !t.isRevealed
-  )
+  const disabledReason =
+    card.phase === 'NightActions'
+      ? 'ZABLOKOWANE W NOCY'
+      : card.phase === 'Ended'
+        ? 'GRA ZAKOŃCZONA'
+        : card.phase === 'Lobby'
+          ? 'CZEKAJ NA START GRY'
+          : ''
+  const selectedTrait = disabledReason
+    ? null
+    : card.traits.find((t) => t.category === selectedTraitCategory && !t.isRevealed)
   const selectedMeta = selectedTrait ? TRAITS[selectedTrait.category] : null
 
   return (
@@ -397,6 +410,7 @@ export default function YourCard({ roomCode, playerId }) {
               trait={trait}
               isSelected={selectedTrait?.category === trait.category}
               disabled={revealing}
+              disabledReason={disabledReason}
               onSelect={handleSelectTrait}
             />
           ))}
