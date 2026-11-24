@@ -50,16 +50,16 @@ public class CardAssignmentService
 		// Для кожної з 6 категорій тасуємо картки і видаємо по одній унікальній кожному гравцю
 		foreach (var category in categories)
 		{
-			if (!cardsByCategory.TryGetValue(category, out var availableCards) || availableCards.Count < players.Count)
+			if (!cardsByCategory.TryGetValue(category, out var availableCards) || availableCards.Count == 0)
 			{
 				throw new InvalidOperationException(
-					$"Недостатньо карток у категорії '{category}'. Гравців: {players.Count}, доступно карток: {availableCards?.Count ?? 0}.");
+					$"Brak kart w kategorii '{category}'. Dodaj karty do bazy (TraitCards).");
 			}
 
-			// Перемішуємо картки випадковим чином (алгоритм Фішера-Єйтса / Random.Shared)
+			// Tasujemy karty. Gdy graczy jest wiecej niz kart w kategorii (w bazie jest po 5 kart),
+			// karty powtarzaja sie u roznych graczy, ale kazdy gracz dostaje po jednej karcie z kategorii.
 			var shuffledCards = availableCards
 				.OrderBy(_ => Random.Shared.Next())
-				.Take(players.Count)
 				.ToList();
 
 			for (int i = 0; i < players.Count; i++)
@@ -67,7 +67,7 @@ public class CardAssignmentService
 				newAssignments.Add(new PlayerTraitCard
 				{
 					PlayerId = players[i].Id,
-					TraitCardId = shuffledCards[i].Id
+					TraitCardId = shuffledCards[i % shuffledCards.Count].Id
 				});
 			}
 		}
