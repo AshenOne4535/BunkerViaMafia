@@ -27,3 +27,18 @@ public enum TraitCategory
     Equipment = 5,    // Ekwipunek
     AgeAndGender = 6  // Wiek i Płeć
 }
+
+public enum GameEventType
+{
+    System = 0,
+    PlayerJoined = 1,
+    GameStarted = 2,
+    DayStarted = 3,
+    CardRevealed = 4,
+    TimerWarning = 5,
+    TimerEnded = 6,
+    PhaseChanged = 7,
+    NightAction = 8,
+    PlayerSilenced = 9,
+    Voting = 10
+}

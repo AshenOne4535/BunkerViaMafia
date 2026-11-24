@@ -11,9 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BunkerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Сервисы (оба обязательно Scoped!)
+// 2. Сервисы
+builder.Services.AddSingleton<RoomTimerTracker>();
+builder.Services.AddScoped<IGameEventService, GameEventService>();
+builder.Services.AddScoped<IDiscussionTimerService, DiscussionTimerService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<CardAssignmentService>();
+builder.Services.AddHostedService<DiscussionTimerHostedService>();
 
 builder.Services.AddCors(options =>
 {

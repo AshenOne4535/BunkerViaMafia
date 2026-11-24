@@ -10,11 +10,16 @@ namespace Bunker.Api.Controllers;
 public class RoomsController : ControllerBase
 {
     private readonly IRoomService _roomService;
+    private readonly IDiscussionTimerService _timerService;
     private readonly IHubContext<GameHub> _hubContext;
 
-    public RoomsController(IRoomService roomService, IHubContext<GameHub> hubContext)
+    public RoomsController(
+        IRoomService roomService,
+        IDiscussionTimerService timerService,
+        IHubContext<GameHub> hubContext)
     {
         _roomService = roomService;
+        _timerService = timerService;
         _hubContext = hubContext;
     }
 
@@ -39,6 +44,29 @@ public class RoomsController : ControllerBase
         var room = await _roomService.GetRoomAsync(code);
         if (room == null) return NotFound(new { message = "Pokój nie został znaleziony." });
         return Ok(room);
+    }
+
+    // Task 20: Zapis ustawień pokoju (czas dnia, liczba dni, limit graczy itp.) przed startem gry
+    [HttpPut("{code}/settings")]
+    public async Task<IActionResult> UpdateSettings(string code, [FromBody] UpdateRoomSettingsDto request)
+    {
+        var normalizedCode = code.ToUpper().Trim();
+        var updatedRoom = await _roomService.UpdateRoomSettingsAsync(normalizedCode, request);
+
+        await _hubContext.Clients.Group(normalizedCode).SendAsync("RoomSettingsUpdated", new
+        {
+            roomCode = normalizedCode,
+            dayDurationMinutes = updatedRoom.DayDurationMinutes,
+            nightDurationSeconds = updatedRoom.NightDurationSeconds,
+            votingDurationSeconds = updatedRoom.VotingDurationSeconds,
+            maxDays = updatedRoom.MaxDays,
+            maxPlayers = updatedRoom.MaxPlayers,
+            bunkerCapacity = updatedRoom.BunkerCapacity,
+            isRandomRevealOrder = updatedRoom.IsRandomRevealOrder,
+            isSoundEnabled = updatedRoom.IsSoundEnabled
+        });
+
+        return Ok(updatedRoom);
     }
 
     public record JoinRoomRequest(string RoomCode, string Nickname);
@@ -84,12 +112,16 @@ public class RoomsController : ControllerBase
             playersCount = assignments.Count
         });
 
+        // Task 20: Automatyczny start Dnia 1 i serwerowego zegara dyskusji przy starcie gry
+        var timerState = await _timerService.StartDiscussionTimerAsync(normalizedCode);
+
         // Возвращаем на экран ТВ только факт успешной раздачи, без спойлеров ролей
         return Ok(new
         {
             message = "Role zostały pomyślnie przydzielone.",
             roomCode = normalizedCode,
-            playersCount = assignments.Count
+            playersCount = assignments.Count,
+            timer = timerState
         });
     }
 
