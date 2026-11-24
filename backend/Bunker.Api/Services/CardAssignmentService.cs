@@ -14,7 +14,7 @@ public class CardAssignmentService
     }
 
     /// <summary>
-    /// Роздає кожному гравцю в кімнаті по 6 унікальних карток (по 1 з кожної категорії).
+    /// Роздає кожному гравцю в кімнаті по 6 карток характеристик (по 1 з кожної категорії).
     /// </summary>
     public async Task AssignCardsToRoomAsync(string roomCode)
     {
@@ -25,11 +25,11 @@ public class CardAssignmentService
             .FirstOrDefaultAsync(r => r.Code == roomCode);
 
         if (room == null)
-            throw new InvalidOperationException($"Кімнату з кодом '{roomCode}' не знайдено.");
+            throw new InvalidOperationException($"Pokój o kodzie '{roomCode}' nie został znaleziony.");
 
         var players = room.Players.ToList();
         if (players.Count == 0)
-            throw new InvalidOperationException("У кімнаті немає гравців для роздачі карток.");
+            throw new InvalidOperationException("W pokoju nie ma graczy do przydzielenia kart.");
 
         // Очищаємо старі картки гравців, якщо роздача запускається повторно
         var existingCards = players.SelectMany(p => p.PlayerTraitCards).ToList();
@@ -47,19 +47,18 @@ public class CardAssignmentService
         var categories = Enum.GetValues<TraitCategory>();
         var newAssignments = new List<PlayerTraitCard>();
 
-        // Для кожної з 6 категорій тасуємо картки і видаємо по одній унікальній кожному гравцю
+        // Tasujemy karty. Gdy graczy jest więcej niż kart w kategorii (w bazie jest po 5 kart),
+        // karty powtarzają się u różnych graczy, ale każdy gracz dostaje po jednej karcie z kategorii.
         foreach (var category in categories)
         {
-            if (!cardsByCategory.TryGetValue(category, out var availableCards) || availableCards.Count < players.Count)
+            if (!cardsByCategory.TryGetValue(category, out var availableCards) || availableCards.Count == 0)
             {
                 throw new InvalidOperationException(
-                    $"Недостатньо карток у категорії '{category}'. Гравців: {players.Count}, доступно карток: {availableCards?.Count ?? 0}.");
+                    $"Brak kart w kategorii '{category}'. Dodaj karty do bazy (TraitCards).");
             }
 
-            // Перемішуємо картки випадковим чином (алгоритм Фішера-Єйтса / Random.Shared)
             var shuffledCards = availableCards
                 .OrderBy(_ => Random.Shared.Next())
-                .Take(players.Count)
                 .ToList();
 
             for (int i = 0; i < players.Count; i++)
@@ -67,8 +66,9 @@ public class CardAssignmentService
                 newAssignments.Add(new PlayerTraitCard
                 {
                     PlayerId = players[i].Id,
-                    TraitCardId = shuffledCards[i].Id,
-                    IsRevealed = false
+                    TraitCardId = shuffledCards[i % shuffledCards.Count].Id,
+                    IsRevealed = false,
+                    RevealedOnDay = null
                 });
             }
         }
@@ -78,7 +78,7 @@ public class CardAssignmentService
     }
 
     /// <summary>
-    /// Відкриває обрану картку гравця (дія зі смартфона).
+    /// Task 16: Odsłania wybraną kartę cechy gracza (akcja ze smartfona).
     /// </summary>
     public async Task<PlayerTraitCard> RevealCardAsync(string roomCode, Guid playerId, int traitCardId)
     {
@@ -96,12 +96,20 @@ public class CardAssignmentService
                 pt.Player.Room.Code == roomCode);
 
         if (playerCard == null)
-            throw new InvalidOperationException("Картку для цього гравця у вказаній кімнаті не знайдено.");
+            throw new InvalidOperationException("Nie znaleziono tej karty u wybranego gracza w podanym pokoju.");
+
+        var room = playerCard.Player.Room;
+        if (room.CurrentPhase == GamePhase.Lobby)
+            throw new InvalidOperationException("Nie można odsłaniać kart przed rozpoczęciem gry.");
+
+        if (room.CurrentPhase == GamePhase.Ended)
+            throw new InvalidOperationException("Gra w tym pokoju już się zakończyła.");
 
         if (playerCard.IsRevealed)
-            throw new InvalidOperationException("Ця картка вже була відкрита раніше.");
+            throw new InvalidOperationException("Ta karta cechy została już wcześniej odsłonięta.");
 
         playerCard.IsRevealed = true;
+        playerCard.RevealedOnDay = room.CurrentDay;
         await _context.SaveChangesAsync();
 
         return playerCard;

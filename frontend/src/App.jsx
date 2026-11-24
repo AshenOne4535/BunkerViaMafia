@@ -114,13 +114,25 @@ function AppContent() {
 
   async function handleStartGame(settings) {
     if (!roomData?.room?.code) return
+    const code = roomData.room.code
     try {
-      const res = await fetch(`${API_URL}/api/rooms/${roomData.room.code}/assign-roles`, {
+      // 1. Раздаем по 6 уникальных карт характеристик каждому игроку (Task 14)
+      const cardsRes = await fetch(`${API_URL}/api/rooms/${code}/cards/assign`, {
         method: 'POST',
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.message || 'Błąd losowania ról')
-      console.log('Gra wystartowała, role rozdane:', data)
+      if (!cardsRes.ok) {
+        const body = await cardsRes.json().catch(() => null)
+        throw new Error(body?.error || body?.message || 'Błąd przydziału kart cech')
+      }
+
+      // 2. Раздаем секретные роли и рассылаем сигнал старта по SignalR (Task 13)
+      const rolesRes = await fetch(`${API_URL}/api/rooms/${code}/assign-roles`, {
+        method: 'POST',
+      })
+      const data = await rolesRes.json()
+      if (!rolesRes.ok) throw new Error(data?.message || 'Błąd losowania ról')
+
+      console.log('Gra wystartowała, karty i role rozdane:', data)
     } catch (err) {
       console.error('Błąd startu gry:', err.message)
     }

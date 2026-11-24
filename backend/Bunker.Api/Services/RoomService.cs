@@ -16,10 +16,22 @@ public record PlayerRoleAssignmentDto(
     string? ConnectionId
 );
 
+public record UpdateRoomSettingsDto(
+    int DayDurationMinutes = 5,
+    int NightDurationSeconds = 60,
+    int VotingDurationSeconds = 45,
+    int MaxDays = 5,
+    int MaxPlayers = 8,
+    int? BunkerCapacity = null,
+    bool IsRandomRevealOrder = true,
+    bool IsSoundEnabled = true
+);
+
 public interface IRoomService
 {
     Task<CreateRoomResult> CreateRoomAsync(string frontendBaseUrl);
     Task<Room?> GetRoomAsync(string roomCode);
+    Task<Room> UpdateRoomSettingsAsync(string roomCode, UpdateRoomSettingsDto settings);
     Task<Player> JoinRoomAsync(string roomCode, string nickname);
     Task<IReadOnlyList<PlayerRoleAssignmentDto>> AssignSecretRolesAsync(string roomCode);
     Task<PlayerRoleAssignmentDto> GetPlayerRoleAsync(string roomCode, Guid playerId);
@@ -28,13 +40,15 @@ public interface IRoomService
 public class RoomService : IRoomService
 {
     private readonly BunkerDbContext _db;
+    private readonly IGameEventService _eventService;
 
     // Алфавит без похожих символов (0, O, I, 1)
     private const string AllowedChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-    public RoomService(BunkerDbContext db)
+    public RoomService(BunkerDbContext db, IGameEventService eventService)
     {
         _db = db;
+        _eventService = eventService;
     }
 
     public async Task<CreateRoomResult> CreateRoomAsync(string frontendBaseUrl)
@@ -56,6 +70,13 @@ public class RoomService : IRoomService
         _db.Rooms.Add(room);
         await _db.SaveChangesAsync();
 
+        await _eventService.AddEventForRoomAsync(
+            room,
+            GameEventType.System,
+            $"System B-07 zainicjalizował pokój {code}. Oczekiwanie na ocalałych.",
+            broadcast: false
+        );
+
         var joinUrl = $"{frontendBaseUrl.TrimEnd('/')}/join?code={code}";
         var qrCodeBase64 = GenerateQrCodeBase64(joinUrl);
 
@@ -70,6 +91,38 @@ public class RoomService : IRoomService
         return await _db.Rooms
             .Include(r => r.Players)
             .FirstOrDefaultAsync(r => r.Code == code);
+    }
+
+    public async Task<Room> UpdateRoomSettingsAsync(string roomCode, UpdateRoomSettingsDto settings)
+    {
+        if (string.IsNullOrWhiteSpace(roomCode))
+            throw new Exception("Kod pokoju jest wymagany.");
+
+        var code = roomCode.ToUpper().Trim();
+        var room = await _db.Rooms
+            .Include(r => r.Players)
+            .FirstOrDefaultAsync(r => r.Code == code);
+
+        if (room == null)
+            throw new Exception("Pokój o podanym kodzie nie istnieje.");
+
+        if (room.CurrentPhase != GamePhase.Lobby)
+            throw new Exception("Ustawienia można zmieniać tylko w lobby przed startem gry.");
+
+        var minAllowedMaxPlayers = Math.Max(3, room.Players.Count);
+        room.DayDurationMinutes = Math.Clamp(settings.DayDurationMinutes, 1, 10);
+        room.NightDurationSeconds = Math.Clamp(settings.NightDurationSeconds, 30, 120);
+        room.VotingDurationSeconds = Math.Clamp(settings.VotingDurationSeconds, 30, 120);
+        room.MaxDays = Math.Clamp(settings.MaxDays, 1, 10);
+        room.MaxPlayers = Math.Clamp(settings.MaxPlayers, minAllowedMaxPlayers, 8);
+        room.BunkerCapacity = settings.BunkerCapacity.HasValue
+            ? Math.Clamp(settings.BunkerCapacity.Value, 1, room.MaxPlayers)
+            : Math.Clamp(room.BunkerCapacity, 1, room.MaxPlayers);
+        room.IsRandomRevealOrder = settings.IsRandomRevealOrder;
+        room.IsSoundEnabled = settings.IsSoundEnabled;
+
+        await _db.SaveChangesAsync();
+        return room;
     }
 
     public async Task<Player> JoinRoomAsync(string roomCode, string nickname)
@@ -104,6 +157,15 @@ public class RoomService : IRoomService
 
         _db.Players.Add(player);
         await _db.SaveChangesAsync();
+
+        var crewCount = room.Players.Select(p => p.Id).Append(player.Id).Distinct().Count();
+        await _eventService.AddEventForRoomAsync(
+            room,
+            GameEventType.PlayerJoined,
+            $"Gracz {player.Nickname} dołączył do załogi ({crewCount}/{room.MaxPlayers}).",
+            player.Id,
+            player.Nickname
+        );
 
         return player;
     }
@@ -149,6 +211,13 @@ public class RoomService : IRoomService
         }
 
         await _db.SaveChangesAsync();
+
+        await _eventService.AddEventForRoomAsync(
+            room,
+            GameEventType.GameStarted,
+            $"Protokół przetrwania B-07 aktywowany! Karty cech oraz tajne role przydzielone dla {players.Count} ocalałych."
+        );
+
         return assignments;
     }
 

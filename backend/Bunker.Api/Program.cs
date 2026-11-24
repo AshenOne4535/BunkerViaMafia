@@ -11,9 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BunkerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Сервисы (оба обязательно Scoped!)
+// 2. Сервисы
+builder.Services.AddSingleton<RoomTimerTracker>();
+builder.Services.AddScoped<IGameEventService, GameEventService>();
+builder.Services.AddScoped<IDiscussionTimerService, DiscussionTimerService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<CardAssignmentService>();
+builder.Services.AddHostedService<DiscussionTimerHostedService>();
 
 builder.Services.AddCors(options =>
 {
@@ -42,6 +46,21 @@ builder.Services.AddSignalR()
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Dev: automatycznie stosuje migracje (m.in. SeedTraitCards z kartami cech), zeby baza nie byla pusta
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BunkerDbContext>();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Nie udalo sie zastosowac migracji bazy danych.");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

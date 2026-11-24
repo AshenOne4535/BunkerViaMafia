@@ -13,6 +13,7 @@ public class BunkerDbContext : DbContext
     public DbSet<Player> Players => Set<Player>();
     public DbSet<TraitCard> TraitCards => Set<TraitCard>();
     public DbSet<PlayerTraitCard> PlayerTraitCards => Set<PlayerTraitCard>();
+    public DbSet<GameEvent> GameEvents => Set<GameEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +28,15 @@ public class BunkerDbContext : DbContext
             .WithMany(r => r.Players)
             .HasForeignKey(p => p.RoomId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GameEvent>()
+            .HasOne(e => e.Room)
+            .WithMany(r => r.Events)
+            .HasForeignKey(e => e.RoomId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GameEvent>()
+            .HasIndex(e => new { e.RoomId, e.CreatedAt });
 
         modelBuilder.Entity<PlayerTraitCard>()
             .HasOne(pt => pt.Player)

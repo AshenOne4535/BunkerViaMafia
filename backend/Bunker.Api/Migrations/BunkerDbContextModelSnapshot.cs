@@ -22,6 +22,46 @@ namespace Bunker.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Bunker.Api.Models.GameEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActorNickname")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid?>("ActorPlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EventType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("Phase")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId", "CreatedAt");
+
+                    b.ToTable("GameEvents");
+                });
+
             modelBuilder.Entity("Bunker.Api.Models.Player", b =>
                 {
                     b.Property<Guid>("Id")
@@ -124,6 +164,9 @@ namespace Bunker.Api.Migrations
                     b.Property<bool>("IsSoundEnabled")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsTimerPaused")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("MaxDays")
                         .HasColumnType("integer");
 
@@ -132,6 +175,15 @@ namespace Bunker.Api.Migrations
 
                     b.Property<int>("NightDurationSeconds")
                         .HasColumnType("integer");
+
+                    b.Property<int?>("PausedRemainingSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PhaseEndsAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("PhaseStartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("VotingDurationSeconds")
                         .HasColumnType("integer");
@@ -381,6 +433,17 @@ namespace Bunker.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Bunker.Api.Models.GameEvent", b =>
+                {
+                    b.HasOne("Bunker.Api.Models.Room", "Room")
+                        .WithMany("Events")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("Bunker.Api.Models.Player", b =>
                 {
                     b.HasOne("Bunker.Api.Models.Room", "Room")
@@ -418,6 +481,8 @@ namespace Bunker.Api.Migrations
 
             modelBuilder.Entity("Bunker.Api.Models.Room", b =>
                 {
+                    b.Navigation("Events");
+
                     b.Navigation("Players");
                 });
 
