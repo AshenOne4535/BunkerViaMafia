@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext.jsx'
 import { formatTime } from '../context/gameData.js'
 import MainBoard from './MainBoard.jsx'
 import AllPlayers from './AllPlayers.jsx'
-import './HostLobby.css' // wspólne z lobby: tło, nagłówek, stopka, skalowanie (.host*)
+import './HostLobby.css'
 import './HostGameView.css'
 
 const DEFAULT_NAV = [
@@ -21,19 +21,33 @@ const PHASE_COPY = {
   day: { eyebrow: 'Faza dnia: dyskusja', label: 'Dyskusja' },
   night: { eyebrow: 'Faza nocy', title: 'Tajne akcje na telefonach', label: 'Noc' },
   vote: { eyebrow: 'Rada końcowa', title: 'Głosowanie: kto wchodzi do bunkra', label: 'Głosowanie' },
+  ended: { eyebrow: 'Koniec protokołu', title: 'Bunkier został zamknięty', label: 'Koniec gry' },
 }
 
 function TimerCard() {
-  const { timer } = useGame()
+  const { phase, timer } = useGame()
   const { remaining, total } = timer
-  const state = remaining === 0 ? 'is-expired' : remaining <= 10 ? 'is-danger' : remaining <= 30 ? 'is-warning' : ''
-  const pct = total > 0 ? (remaining / total) * 100 : 0
+  const state =
+    remaining === 0
+      ? 'is-expired'
+      : remaining <= 10
+        ? 'is-danger'
+        : remaining <= 30
+          ? 'is-warning'
+          : ''
+  const pct = total > 0 ? Math.min(100, Math.max(0, (remaining / total) * 100)) : 0
+  const label =
+    remaining === 0
+      ? 'Czas minął'
+      : phase === 'vote'
+        ? 'Czas głosowania'
+        : 'Czas dyskusji'
 
   return (
-    <div className={`hg-timer ${state}`} role="timer" aria-label="Czas dyskusji">
+    <div className={`hg-timer ${state}`} role="timer" aria-label={label}>
       <div className="hg-timer__row">
-        <span>{remaining === 0 ? 'Czas minął' : 'Czas dyskusji'}</span>
-        <span>{Math.floor(total / 60)}:{String(total % 60).padStart(2, '0')}</span>
+        <span>{label}</span>
+        <span>{formatTime(total)}</span>
       </div>
       <div className="hg-timer__time">{formatTime(remaining)}</div>
       <div className="hg-timer__bar">
@@ -43,37 +57,67 @@ function TimerCard() {
   )
 }
 
+// Task 20: Pasek postępu dni zasilany stanem z serwera
 function DayTabs() {
-  const { phase, day, totalDays } = useGame()
-  const current = phase === 'vote' ? totalDays : day - 1
-  const tabs = [...Array.from({ length: totalDays }, (_, i) => `Dzień ${i + 1}`), 'Finał']
+  const { phase, day, totalDays, daysProgress } = useGame()
+  const isFinal = phase === 'vote' || phase === 'ended'
+
+  const dayItems =
+    Array.isArray(daysProgress) && daysProgress.length === totalDays
+      ? daysProgress.map((d) => ({
+          label: `Dzień ${d.dayNumber}`,
+          isDone: isFinal || d.status === 'completed',
+          isCurrent: !isFinal && d.status === 'current',
+        }))
+      : Array.from({ length: totalDays }, (_, i) => ({
+          label: `Dzień ${i + 1}`,
+          isDone: isFinal || i + 1 < day,
+          isCurrent: !isFinal && i + 1 === day,
+        }))
+
+  const tabs = [
+    ...dayItems,
+    {
+      label: 'Finał',
+      isDone: phase === 'ended',
+      isCurrent: phase === 'vote',
+    },
+  ]
 
   return (
-    <nav className="hg-days" style={{ '--tabs': tabs.length }} aria-label="Postęp gry">
-      {tabs.map((label, i) => (
+    <nav className="hg-days" style={{ '--tabs': tabs.length }} aria-label="Pasek postępu dni">
+      {tabs.map((tab) => (
         <span
-          key={label}
-          className={`hg-day${i < current ? ' is-done' : ''}${i === current ? ' is-current' : ''}`}
-          aria-current={i === current ? 'step' : undefined}
+          key={tab.label}
+          className={`hg-day${tab.isDone ? ' is-done' : ''}${tab.isCurrent ? ' is-current' : ''}`}
+          aria-current={tab.isCurrent ? 'step' : undefined}
         >
-          {label}
+          {tab.label}
         </span>
       ))}
     </nav>
   )
 }
 
-/**
- * Props (opcjonalne, jak w HostLobby):
- *  - navItems     linki w nagłówku
- *  - headerExtra  element obok kodu pokoju (np. przełącznik motywu)
- *  - connection   'stable' | 'connecting' | 'lost'
- */
 export default function HostGameView({ navItems = DEFAULT_NAV, headerExtra, connection = 'stable' }) {
-  const { phase, day, totalDays, room, topic, timer, settings, setPhase, startNight, startVoting } = useGame()
+  const {
+    phase,
+    day,
+    totalDays,
+    room,
+    topic,
+    timer,
+    settings,
+    setPhase,
+    startNight,
+    startVoting,
+    advanceNextDay,
+  } = useGame()
+
   const copy = PHASE_COPY[phase] ?? PHASE_COPY.day
   const conn = CONNECTION[connection] ?? CONNECTION.lost
   const isDay = phase === 'day'
+  const showTimer = phase === 'day' || phase === 'vote'
   const lastDay = day >= totalDays
   const debateState = timer.remaining === 0 ? 'zakończona' : timer.running ? 'trwa' : 'wstrzymana'
 
@@ -116,7 +160,7 @@ export default function HostGameView({ navItems = DEFAULT_NAV, headerExtra, conn
           <p className="hg-hero__eyebrow">{isDay ? `Dzień ${day} — ${copy.eyebrow}` : copy.eyebrow}</p>
           <h1 className="hg-hero__title">{isDay ? topic : copy.title}</h1>
         </div>
-        {isDay && <TimerCard />}
+        {showTimer && <TimerCard />}
       </section>
 
       <DayTabs />
@@ -129,10 +173,19 @@ export default function HostGameView({ navItems = DEFAULT_NAV, headerExtra, conn
           </>
         ) : (
           <div className="hg-placeholder">
-            <p>Ekran fazy „{copy.label}” jest w przygotowaniu.</p>
-            <button type="button" className="hg-ghost" onClick={() => setPhase('day')}>
-              ← Wróć do fazy dnia (tryb testowy)
-            </button>
+            <p>Ekran fazy „{copy.label}” — tajne akcje i głosowanie na smartfonach.</p>
+            <div className="hg-placeholder__actions">
+              {phase === 'night' && (
+                <button type="button" className="hg-cta" onClick={advanceNextDay}>
+                  {lastDay
+                    ? 'Rozpocznij głosowanie finałowe →'
+                    : `Rozpocznij Dzień ${day + 1} →`}
+                </button>
+              )}
+              <button type="button" className="hg-ghost" onClick={() => setPhase('day')}>
+                ← Wróć do widoku dnia
+              </button>
+            </div>
           </div>
         )}
       </main>
@@ -140,16 +193,23 @@ export default function HostGameView({ navItems = DEFAULT_NAV, headerExtra, conn
       {isDay && (
         <div className="hg-bottom">
           <div>
-            <p className="hg-bottom__title">Dzień {day} • Debata {debateState}</p>
+            <p className="hg-bottom__title">Dzień {day} z {totalDays} • Debata {debateState}</p>
             <p className="hg-bottom__hint">
               {lastDay
                 ? 'Następna faza: rada końcowa • głosowanie na telefonach'
                 : `Następna faza: noc • ${formatTime(settings.nightSeconds)} • tajne akcje na telefonach`}
             </p>
           </div>
-          <button type="button" className="hg-cta" onClick={lastDay ? startVoting : startNight}>
-            {lastDay ? 'Rozpocznij głosowanie' : 'Rozpocznij noc'} <span aria-hidden="true">→</span>
-          </button>
+          <div className="hg-bottom__actions">
+            {!lastDay && (
+              <button type="button" className="hg-ghost" onClick={advanceNextDay}>
+                Następny dzień (Dzień {day + 1}) ›
+              </button>
+            )}
+            <button type="button" className="hg-cta" onClick={lastDay ? startVoting : startNight}>
+              {lastDay ? 'Rozpocznij głosowanie' : 'Rozpocznij noc'} <span aria-hidden="true">→</span>
+            </button>
+          </div>
         </div>
       )}
 

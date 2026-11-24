@@ -1,35 +1,54 @@
+import { useState } from 'react'
 import { ThemeProvider } from './context/ThemeContext'
 import { GameProvider, useGame } from './context/GameContext.jsx'
 import JoinForm from './components/JoinForm'
 import HostLobby from './components/HostLobby'
 import HostGameView from './components/HostGameView.jsx'
+import Waiting from './components/Waiting'
+import YourCard from './components/YourCard'
 import ThemeToggleButton from './components/ThemeToggleButton.jsx'
 
-// Linki w nagłówku ekranu hosta. "WIDOK TELEFONU" widać tylko w trybie
-// deweloperskim (npm run dev), w produkcji go nie ma.
 const HOST_NAV = [
   { id: 'broadcast', label: 'TRANSMISJA LOKALNA', href: '/?host', live: true },
   { id: 'host', label: 'PANEL HOSTA', href: '/?host', current: true },
   ...(import.meta.env.DEV ? [{ id: 'phone', label: 'WIDOK TELEFONU', href: '/' }] : []),
 ]
 
-// Ekran hosta (TV): lobby przed startem, potem ekran gry.
-// Musi być wewnątrz <GameProvider>, bo korzysta z useGame().
+// Ekran Hosta (TV): Lobby przed startem -> Widok Gry (Task 17, 18, 19, 20)
 function HostScreen() {
-  const { phase, startGame } = useGame()
+  const { phase, room, lobbyPlayers, connStatus, startGame } = useGame()
   const themeToggle = <ThemeToggleButton />
 
-  return phase === 'lobby' ? (
-    <HostLobby navItems={HOST_NAV} headerExtra={themeToggle} onStart={startGame} />
-  ) : (
-    <HostGameView navItems={HOST_NAV} headerExtra={themeToggle} />
+  if (phase === 'lobby') {
+    return (
+      <HostLobby
+        roomCode={room?.code ?? '....'}
+        players={lobbyPlayers}
+        connection={connStatus}
+        qrSrc={room?.qrCodeBase64}
+        joinUrl={room?.joinUrl}
+        navItems={HOST_NAV}
+        headerExtra={themeToggle}
+        onStart={startGame}
+      />
+    )
+  }
+
+  return (
+    <HostGameView
+      navItems={HOST_NAV}
+      headerExtra={themeToggle}
+      connection={connStatus}
+    />
   )
 }
 
 function AppContent() {
-  // Tymczasowo, do czasu routera: /?host otwiera ekran hosta (TV),
-  // zwykły adres otwiera formularz gracza (telefon).
   const isHost = new URLSearchParams(window.location.search).has('host')
+
+  // Stan ekranu smartfona gracza (Task 11 -> Task 12 -> Task 15/16)
+  const [joined, setJoined] = useState(null)
+  const [gameStarted, setGameStarted] = useState(false)
 
   if (isHost) {
     return (
@@ -53,7 +72,27 @@ function AppContent() {
         <ThemeToggleButton />
       </header>
 
-      <JoinForm onJoined={(data) => console.log('Dołączono:', data)} />
+      {!joined && <JoinForm onJoined={setJoined} />}
+      {joined && !gameStarted && (
+        <>
+          <Waiting
+            roomCode={joined.code}
+            nick={joined.nick}
+            playerId={joined.player?.id}
+            onGameStart={() => setGameStarted(true)}
+          />
+          {import.meta.env.DEV && (
+            <button
+              type="button"
+              onClick={() => setGameStarted(true)}
+              style={{ margin: '0 auto 12px', fontSize: 12, color: 'var(--muted)', background: 'none', border: 0, cursor: 'pointer' }}
+            >
+              [dev] symuluj start gry →
+            </button>
+          )}
+        </>
+      )}
+      {joined && gameStarted && <YourCard roomCode={joined.code} playerId={joined.player?.id} />}
     </div>
   )
 }

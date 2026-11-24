@@ -93,11 +93,17 @@
   grid-column: 1 / -1; display: grid; place-content: center; justify-items: center; gap: 1.2em;
   border: 1px dashed var(--border); border-radius: 3px; color: var(--muted); text-align: center;
 }
+.hg-placeholder__actions {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1em;
+}
 
 
 .hg-bottom {
   display: flex; align-items: center; justify-content: space-between; gap: 2em;
   padding: 0.9em 3em; border-top: 1px solid var(--border); font-family: var(--font-mono);
+}
+.hg-bottom__actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1em;
 }
 .hg-bottom__title { text-transform: uppercase; color: var(--text); }
 .hg-bottom__hint {

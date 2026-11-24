@@ -33,9 +33,19 @@
   flex: 1 1 7em; min-height: 7em; display: flex; flex-direction: column;
   background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
 }
+.mb-feed__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 1em;
+  padding: 0.5em 0.9em;
+}
 .mb-feed__title {
-  padding: 0.5em 0.9em; font: 400 0.8em var(--font-mono); letter-spacing: 0.08em;
+  font: 400 0.8em var(--font-mono); letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--text);
+}
+.mb-feed__count {
+  font-size: 0.7em; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.mb-feed__empty {
+  padding: 0.9em; font-size: 0.75em; text-transform: uppercase; color: var(--muted);
 }
 .mb-feed__list {
   margin: 0; padding: 0; list-style: none; flex: 1; overflow-y: auto;
@@ -47,6 +57,9 @@
 }
 .mb-feed__time { grid-row: span 2; align-self: center; font-size: 0.85em; color: var(--muted); }
 .mb-feed__type { font-size: 0.65em; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lime); }
+.mb-feed__type--warn { color: var(--warn); }
+.mb-feed__type--danger { color: var(--danger); }
+.mb-feed__type--neutral { color: var(--muted); }
 .mb-feed__item p { font-size: 0.8em; text-transform: uppercase; color: var(--text); }
 
 @media (max-width: 1099px) {

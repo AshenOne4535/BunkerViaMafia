@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Bunker.Api.Models;
 
@@ -25,6 +26,15 @@ public class Room
     public bool IsRandomRevealOrder { get; set; } = true;   // Losowa / Ręczna
     public bool IsSoundEnabled { get; set; } = true;        // Włączony / Wyłączony
 
-    // Навігаційна властивість (1 Room -> Many Players)
+    // Task 20: Serwerowy zegar dyskusji
+    public DateTime? PhaseStartedAtUtc { get; set; }
+    public DateTime? PhaseEndsAtUtc { get; set; }
+    public bool IsTimerPaused { get; set; } = false;
+    public int? PausedRemainingSeconds { get; set; }
+
+    // Навігаційні властивості
     public ICollection<Player> Players { get; set; } = new List<Player>();
+
+    [JsonIgnore]
+    public ICollection<GameEvent> Events { get; set; } = new List<GameEvent>();
 }

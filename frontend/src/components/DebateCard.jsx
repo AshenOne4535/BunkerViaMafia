@@ -3,7 +3,7 @@ import { TRAIT_CATEGORIES, formatTime, initials } from '../context/gameData.js'
 import './DebateCard.css'
 
 export default function DebateCard() {
-  const { speaker, players, debate, timer, toggleTimer, resetTimer, nextSpeaker } = useGame()
+  const { speaker, players, debate, timer, toggleTimer, resetTimer, nextSpeaker, selectSpeaker } = useGame()
 
   if (!speaker) {
     return (
@@ -82,7 +82,13 @@ export default function DebateCard() {
             const isNow = p.id === speaker.id
             const isDone = !isNow && debate.spoken.includes(p.id)
             return (
-              <li key={p.id} className={`dc-q${isNow ? ' is-now' : ''}${isDone ? ' is-done' : ''}`}>
+              <li
+                key={p.id}
+                className={`dc-q${isNow ? ' is-now' : ''}${isDone ? ' is-done' : ''}`}
+                onClick={() => selectSpeaker?.(p.id)}
+                style={{ cursor: 'pointer' }}
+                title={`Ustaw mówcę: ${p.nick}`}
+              >
                 <span>{i + 1}</span> {p.nick}
               </li>
             )

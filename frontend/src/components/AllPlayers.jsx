@@ -40,10 +40,14 @@ function TraitChip({ category, trait }) {
   )
 }
 
-function PlayerFolder({ player, isSpeaker }) {
+function PlayerFolder({ player, isSpeaker, onSelect }) {
   const exiled = player.status === 'wygnany'
   return (
-    <li className={`ap-card${isSpeaker ? ' is-speaker' : ''}${exiled ? ' is-exiled' : ''}`}>
+    <li
+      className={`ap-card${isSpeaker ? ' is-speaker' : ''}${exiled ? ' is-exiled' : ''}`}
+      onClick={!exiled ? onSelect : undefined}
+      style={!exiled ? { cursor: 'pointer' } : undefined}
+    >
       <div className="ap-card__head">
         <div className="ap-avatar" aria-hidden="true">{initials(player.nick)}</div>
         <span className="ap-card__nick">{player.nick}</span>
@@ -59,7 +63,7 @@ function PlayerFolder({ player, isSpeaker }) {
 }
 
 export default function AllPlayers() {
-  const { day, players, debate, counts } = useGame()
+  const { day, players, debate, counts, selectSpeaker } = useGame()
 
   return (
     <section className="ap" aria-label="Wszyscy Gracze">
@@ -72,7 +76,12 @@ export default function AllPlayers() {
       </header>
       <ul className="ap__list">
         {players.map((p) => (
-          <PlayerFolder key={p.id} player={p} isSpeaker={p.id === debate.speakerId} />
+          <PlayerFolder
+            key={p.id}
+            player={p}
+            isSpeaker={p.id === debate.speakerId}
+            onSelect={() => selectSpeaker?.(p.id)}
+          />
         ))}
       </ul>
     </section>

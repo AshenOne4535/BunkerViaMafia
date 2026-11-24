@@ -1,6 +1,135 @@
 @Bunker.Api_HostAddress = http://localhost:5262
+@roomCode = A7X2
+@playerId = 00000000-0000-0000-0000-000000000000
 
-GET {{Bunker.Api_HostAddress}}/weatherforecast/
+### 0. Healthcheck API
+GET {{Bunker.Api_HostAddress}}/api/rooms/ping
+Accept: application/json
+
+### 1. Utwórz pokój (Host Lobby)
+POST {{Bunker.Api_HostAddress}}/api/rooms/create?frontendUrl=http://localhost:5173
+Accept: application/json
+
+### 2. Zapisz ustawienia gry (Task 20 — długość dnia, liczba dni itp.)
+PUT {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/settings
+Content-Type: application/json
+
+{
+  "dayDurationMinutes": 2,
+  "nightDurationSeconds": 60,
+  "votingDurationSeconds": 45,
+  "maxDays": 5,
+  "maxPlayers": 8,
+  "bunkerCapacity": 5,
+  "isRandomRevealOrder": true,
+  "isSoundEnabled": true
+}
+
+### 3. Dołącz graczy testowych (min. 3 do startu)
+POST {{Bunker.Api_HostAddress}}/api/rooms/join
+Content-Type: application/json
+
+{
+  "roomCode": "{{roomCode}}",
+  "nickname": "Szczur"
+}
+
+###
+POST {{Bunker.Api_HostAddress}}/api/rooms/join
+Content-Type: application/json
+
+{
+  "roomCode": "{{roomCode}}",
+  "nickname": "Doktor Kot"
+}
+
+###
+POST {{Bunker.Api_HostAddress}}/api/rooms/join
+Content-Type: application/json
+
+{
+  "roomCode": "{{roomCode}}",
+  "nickname": "Marek"
+}
+
+### 4. Przydziel karty cech i tajne role (uruchamia Dzień 1 i zegar)
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/cards/assign
 Accept: application/json
 
 ###
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/assign-roles
+Accept: application/json
+
+### =========================================================================
+### TASK 16: Mechanika odsłaniania karty cechy ze smartfona
+### =========================================================================
+
+### Pobierz wszystkie 6 kart konkretnego gracza (widok telefonu)
+GET {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/cards/player/{{playerId}}
+Accept: application/json
+
+### Odsłoń wybraną kartę cechy (wysyła "CardRevealed" + wpis do Feedu Wydarzeń)
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/cards/reveal
+Content-Type: application/json
+
+{
+  "playerId": "{{playerId}}",
+  "traitCardId": 1
+}
+
+### Pobierz karty wszystkich graczy dla ekranu TV (ukryte = "???")
+GET {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/cards
+Accept: application/json
+
+### =========================================================================
+### TASK 19: Feed Wydarzeń
+### =========================================================================
+
+### Pobierz historię wydarzeń pokoju (Feed Wydarzeń)
+GET {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/events?limit=50&newestFirst=true
+Accept: application/json
+
+### Dodaj własne wydarzenie do Feedu (rozsyła "GameEventCreated" przez SignalR)
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/events
+Content-Type: application/json
+
+{
+  "eventType": "System",
+  "message": "Czujniki wykryły spadek ciśnienia w sektorze B-07."
+}
+
+### =========================================================================
+### TASK 20: Serwerowy zegar dyskusji i pasek postępu dni
+### =========================================================================
+
+### Pobierz stan zegara dyskusji + pasek postępu dni
+GET {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/timer
+Accept: application/json
+
+### Pobierz sam pasek postępu dni
+GET {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/days-progress
+Accept: application/json
+
+### Uruchom zegar dyskusji (opcjonalnie z krótszym czasem testowym np. 40s)
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/timer/start
+Content-Type: application/json
+
+{
+  "durationSeconds": 40
+}
+
+### Wstrzymaj zegar dyskusji
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/timer/pause
+Accept: application/json
+
+### Wznów zegar dyskusji
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/timer/resume
+Accept: application/json
+
+### Zresetuj zegar bieżącego dnia
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/timer/reset
+Accept: application/json
+
+### Przejdź do następnego dnia (aktualizuje pasek postępu dni i uruchamia zegar)
+POST {{Bunker.Api_HostAddress}}/api/rooms/{{roomCode}}/timer/next-day
+Accept: application/json

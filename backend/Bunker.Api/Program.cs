@@ -1,30 +1,76 @@
+using System.Text.Json.Serialization;
 using Bunker.Api.Data;
+using Bunker.Api.Hubs;
+using Bunker.Api.Middleware;
+using Bunker.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Реєстрація контексту БД PostgreSQL
+// 1. Контекст БД PostgreSQL
 builder.Services.AddDbContext<BunkerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add services to the container.
-builder.Services.AddControllers();
+// 2. Сервисы
+builder.Services.AddSingleton<RoomTimerTracker>();
+builder.Services.AddScoped<IGameEventService, GameEventService>();
+builder.Services.AddScoped<IDiscussionTimerService, DiscussionTimerService>();
+builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<CardAssignmentService>();
+builder.Services.AddHostedService<DiscussionTimerHostedService>();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Dev: automatycznie stosuje migracje (m.in. SeedTraitCards z kartami cech), zeby baza nie byla pusta
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BunkerDbContext>();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Nie udalo sie zastosowac migracji bazy danych.");
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseCors("AllowReact");
 app.UseAuthorization();
-
 app.MapControllers();
+app.MapHub<GameHub>("/hubs/game");
 
 app.Run();

@@ -51,18 +51,27 @@ export default function MainBoard() {
 
       <DebateCard />
 
-      {/* Prosty feed na mockach. TODO (Task 19): zastąpić komponentem <EventFeed /> */}
+      {/* Task 19: Feed Wydarzeń z serwera (REST + SignalR "GameEventCreated") */}
       <section className="mb-feed" aria-label="Feed wydarzeń">
-        <h3 className="mb-feed__title">Feed wydarzeń</h3>
-        <ul className="mb-feed__list">
-          {events.map((e) => (
-            <li key={e.id} className="mb-feed__item">
-              <time className="mb-feed__time">{e.time}</time>
-              <span className="mb-feed__type">{e.type}</span>
-              <p>{e.text}</p>
-            </li>
-          ))}
-        </ul>
+        <div className="mb-feed__head">
+          <h3 className="mb-feed__title">Feed wydarzeń</h3>
+          <span className="mb-feed__count">{events.length} wpisów</span>
+        </div>
+        {events.length === 0 ? (
+          <p className="mb-feed__empty">Brak zarejestrowanych wydarzeń.</p>
+        ) : (
+          <ul className="mb-feed__list" aria-live="polite">
+            {events.map((e) => (
+              <li key={e.id} className="mb-feed__item">
+                <time className="mb-feed__time">{e.time}</time>
+                <span className={`mb-feed__type${e.tone ? ` mb-feed__type--${e.tone}` : ''}`}>
+                  {e.type} • Dzień {e.day ?? day}
+                </span>
+                <p>{e.text}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </section>
   )
